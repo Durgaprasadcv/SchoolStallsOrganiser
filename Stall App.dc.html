@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="_ds/organic-398c7524-8951-44f7-9ce9-123a34649051/styles.css">
+<script src="_ds/organic-398c7524-8951-44f7-9ce9-123a34649051/_ds_bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+body{margin:0;background:var(--color-surface);font-family:var(--font-body);color:var(--color-text)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#c67139"></rect><circle cx="50" cy="50" r="28" fill="#f5ead8"></circle><text x="50" y="62" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#643312">S</text></svg></template>
+<div style="padding:var(--space-8) var(--space-6);display:flex;flex-direction:column;gap:var(--space-8);max-width:1400px">
+  <div style="display:flex;flex-direction:column;gap:var(--space-2);max-width:760px">
+    <span class="tag tag-accent-2" style="align-self:flex-start">Prototype · try it live</span>
+    <h1 style="font-family:var(--font-heading);font-weight:400;font-size:44px;line-height:1.05;margin:0">Stall Day — one app for every stall at the school fair</h1>
+    <p style="margin:0;font-size:17px;line-height:1.5;text-wrap:pretty">Order on the customer phone, then watch it arrive on the stall owner's phone, the token board and the admin view. Switch the owner phone to the clothes or crafts stall to try holds and sizes.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:var(--space-8);align-items:flex-start">
+
+    <!-- CUSTOMER PHONE -->
+    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <div style="display:flex;align-items:center;gap:var(--space-2);min-height:44px"><span class="tag tag-accent">Customer</span><span style="font-size:14px">Parents, kids, visitors</span></div>
+      <div style="width:380px;height:780px;border-radius:48px;border:10px solid var(--color-text);background:var(--color-bg);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;display:flex;flex-direction:column">
+
+        <sc-if value="{{ cNotice }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:var(--space-3);left:var(--space-3);right:var(--space-3);z-index:30;background:var(--color-accent-2-700);color:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:2px">
+            <strong style="font-size:15px">{{ cNoticeTitle }}</strong>
+            <span style="font-size:14px">{{ cNotice }}</span>
+          </div>
+        </sc-if>
+
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+
+          <sc-if value="{{ cScan }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:var(--space-8) var(--space-6);display:flex;flex-direction:column;gap:var(--space-6);flex:1">
+              <div style="width:120px;height:120px;border-radius:999px;background:var(--color-accent-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:44px;color:var(--color-accent-800)">S</div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                <span style="font-size:14px;color:var(--color-accent-700);font-weight:600">You scanned the QR at</span>
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:34px;line-height:1.1;margin:0">{{ entryStall.name }}</h2>
+                <p style="margin:0;font-size:15px;line-height:1.5">Tell us who you are so the stall can call your token when it's ready.</p>
+              </div>
+              <div class="field"><label>Your name</label><input class="input" placeholder="e.g. Rahul" value="{{ userName }}" onChange="{{ onName }}"></input></div>
+              <div class="field"><label>WhatsApp number</label><input class="input" placeholder="10-digit mobile" inputMode="tel" value="{{ userPhone }}" onChange="{{ onPhone }}"></input><span style="font-size:12px">Your token, receipt and "order ready" message come here.</span></div>
+              <div style="flex:1"></div>
+              <span style="font-size:13px">No password or OTP — we remember you on this phone.</span>
+              <button class="btn btn-primary btn-block" onClick="{{ enter }}">See the menu</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cHome }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <div style="display:flex;flex-direction:column;gap:2px;padding:0 var(--space-2)">
+                <span style="font-size:14px">Hi {{ userName }}</span>
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">Stalls today</h2>
+              </div>
+              <sc-for list="{{ stallsList }}" as="s" hint-placeholder-count="3">
+                <button onClick="{{ s.open }}" class="card" style="text-align:left;border:none;cursor:pointer;display:flex;gap:var(--space-3);align-items:center;font:inherit;color:inherit;border-radius:var(--radius-lg)">
+                  <sc-if value="{{ s.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:56px;height:56px;flex:none;border-radius:999px;overflow:hidden"><div role="img" style="width:100%;height:100%;background-image:url({{ s.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                  <sc-if value="{{ s.noPhoto }}" hint-placeholder-val="{{ true }}"><div style="width:56px;height:56px;flex:none;border-radius:999px;background:var(--color-accent-2-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:24px;color:var(--color-accent-2-800)">{{ s.initial }}</div></sc-if>
+                  <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap"><strong style="font-size:17px">{{ s.name }}</strong><sc-if value="{{ s.paused }}" hint-placeholder-val="{{ false }}"><span class="tag tag-outline">Back soon</span></sc-if></div>
+                    <span style="font-size:13px">{{ s.category }} · {{ s.hours }} · {{ s.cutLabel }}</span>
+                    <span style="font-size:13px;color:var(--color-neutral-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.preview }}</span>
+                  </div>
+                </button>
+              </sc-for>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface);margin-top:var(--space-2)">
+                <h3 style="font-family:var(--font-heading);font-weight:400;font-size:22px;margin:0">Lost &amp; found</h3>
+                <sc-if value="{{ noNotices }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px">Nothing reported right now.</span></sc-if>
+                <sc-for list="{{ openNotices }}" as="n" hint-placeholder-count="2">
+                  <div style="display:flex;gap:var(--space-2);align-items:flex-start"><span class="{{ n.cls }}" style="flex:none">{{ n.kind }}</span><div style="display:flex;flex-direction:column"><span style="font-size:14px">{{ n.text }}</span><span style="font-size:12px">{{ n.time }} · {{ n.by }}</span></div></div>
+                </sc-for>
+                <sc-if value="{{ cReport.closed }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" style="align-self:flex-start" onClick="{{ cReport.open }}">Report lost or found item</button></sc-if>
+                <sc-if value="{{ cReport.isOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:var(--space-2)"><sc-for list="{{ cReport.kinds }}" as="k" hint-placeholder-count="2"><button class="{{ k.cls }}" onClick="{{ k.pick }}">{{ k.label }}</button></sc-for></div>
+                  <input class="input" placeholder="{{ cReport.placeholder }}" value="{{ cReport.text }}" onChange="{{ cReport.setText }}"></input>
+                  <div style="display:flex;gap:var(--space-2)"><button class="btn btn-ghost" onClick="{{ cReport.cancel }}">Cancel</button><button class="btn btn-primary" style="flex:1" onClick="{{ cReport.submit }}" disabled="{{ cReport.invalid }}">Post</button></div>
+                  <span style="font-size:12px">Found items go to the admin desk. Your number is shared only with the admin.</span>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100);margin-top:var(--space-2)">
+                <h3 style="font-family:var(--font-heading);font-weight:400;font-size:22px;margin:0">Just want to give?</h3>
+                <span style="font-size:14px;line-height:1.5">Donate straight to the school fund — no purchase needed.</span>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <sc-for list="{{ donateOpts }}" as="d" hint-placeholder-count="3"><button class="{{ d.cls }}" onClick="{{ d.pick }}">₹{{ d.amount }}</button></sc-for>
+                </div>
+                <a class="btn btn-primary btn-block" href="{{ donateLink }}" onClick="{{ donateDone }}" style="text-decoration:none">Donate ₹{{ donateAmt }} via UPI</a>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cStall }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);padding-bottom:110px">
+              <button class="btn btn-ghost" style="align-self:flex-start" onClick="{{ goHome }}">← All stalls</button>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:0 var(--space-2)">
+                <sc-if value="{{ stall.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:100%;height:160px;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:var(--space-2)"><div role="img" style="width:100%;height:100%;background-image:url({{ stall.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                <span class="tag tag-accent-2" style="align-self:flex-start">{{ stall.category }}</span>
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:32px;line-height:1.1;margin:0">{{ stall.name }}</h2>
+                <span style="font-size:14px">by {{ stall.owner }} · {{ stall.hours }}</span>
+                <span style="font-size:14px;color:var(--color-accent-2-800);font-weight:600">{{ stall.cutLine }}</span>
+                <button class="btn btn-secondary" style="align-self:flex-start" onClick="{{ goInfo }}">About this stall</button>
+              </div>
+              <sc-if value="{{ stall.paused }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:2px;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-100)">
+                  <strong style="color:var(--color-accent-800)">Back soon</strong>
+                  <span style="font-size:14px">{{ stall.pauseMsg }} — have a look, ordering is paused.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showAvoid }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:0 var(--space-2)">
+                  <span style="font-size:14px;font-weight:600">Allergies? Hide items with:</span>
+                  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                    <sc-for list="{{ avoidOpts }}" as="a" hint-placeholder-count="4"><button class="{{ a.cls }}" style="cursor:pointer;border:none;font:inherit;font-size:13px" onClick="{{ a.pick }}">{{ a.label }}</button></sc-for>
+                  </div>
+                  <sc-if value="{{ hiddenNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px">{{ hiddenNote }}</span></sc-if>
+                  <span style="font-size:12px">Tags are added by the stall owner — please double-check at the stall if it's serious.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasCombos }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:0 var(--space-2)">Combos</span>
+                <sc-for list="{{ combos }}" as="k" hint-placeholder-count="1">
+                  <div style="display:flex;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)">
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                      <strong style="font-size:15px">{{ k.name }}</strong>
+                      <span style="font-size:13px">{{ k.partsText }}</span>
+                      <div style="display:flex;gap:var(--space-2);align-items:baseline"><span style="font-size:15px;font-weight:700">{{ k.priceStr }}</span><span style="font-size:12px;font-weight:700;color:var(--color-accent-2-800)">{{ k.saveText }}</span></div>
+                    </div>
+                    <sc-if value="{{ k.canAddFirst }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ k.add }}">Add</button></sc-if>
+                    <sc-if value="{{ k.hasQty }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:center;gap:var(--space-2)">
+                        <button class="btn btn-icon btn-secondary" onClick="{{ k.sub }}" aria-label="Less">−</button>
+                        <strong style="min-width:16px;text-align:center">{{ k.qty }}</strong>
+                        <button class="btn btn-icon btn-primary" onClick="{{ k.add }}" disabled="{{ k.atMax }}" aria-label="More">+</button>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <span style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:0 var(--space-2)">{{ stall.menuLabel }}</span>
+              <sc-for list="{{ menu }}" as="m" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3);border-radius:var(--radius-lg);background:var(--color-surface);opacity:{{ m.opacity }}">
+                  <div style="display:flex;gap:var(--space-3);align-items:center">
+                    <sc-if value="{{ m.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:52px;height:52px;flex:none;border-radius:999px;overflow:hidden"><div role="img" style="width:100%;height:100%;background-image:url({{ m.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                    <sc-if value="{{ m.noPhoto }}" hint-placeholder-val="{{ true }}"><div style="width:52px;height:52px;flex:none;border-radius:999px;background:var(--color-accent-100);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:20px;color:var(--color-accent-800)">{{ m.initial }}</div></sc-if>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                      <strong style="font-size:15px">{{ m.name }}</strong>
+                      <span style="font-size:13px">{{ m.note }}</span>
+                      <sc-if value="{{ m.hasTags }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:4px;padding:2px 0"><sc-for list="{{ m.tagList }}" as="t" hint-placeholder-count="2"><span class="{{ t.cls }}" style="font-size:11px">{{ t.label }}</span></sc-for></div></sc-if>
+                      <div style="display:flex;gap:var(--space-2);align-items:baseline"><span style="font-size:15px;font-weight:700">{{ m.priceStr }}</span><span style="font-size:12px;font-weight:700;color:var(--color-accent-700)">{{ m.stockNote }}</span></div>
+                    </div>
+                    <sc-if value="{{ m.soldOut }}" hint-placeholder-val="{{ false }}"><span class="tag tag-neutral">Sold out</span></sc-if>
+                    <sc-if value="{{ m.canAddFirst }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ m.add }}">Add</button></sc-if>
+                    <sc-if value="{{ m.hasQty }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:center;gap:var(--space-2)">
+                        <button class="btn btn-icon btn-secondary" onClick="{{ m.sub }}" aria-label="Less">−</button>
+                        <strong style="min-width:16px;text-align:center">{{ m.qty }}</strong>
+                        <button class="btn btn-icon btn-primary" onClick="{{ m.add }}" disabled="{{ m.atMax }}" aria-label="More">+</button>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ m.hasSizes }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;padding-left:64px;align-items:center">
+                      <span style="font-size:12px;font-weight:600">Size</span>
+                      <sc-for list="{{ m.sizeOpts }}" as="z" hint-placeholder-count="3">
+                        <button class="{{ z.cls }}" style="cursor:pointer;border:none;font:inherit;font-size:13px" onClick="{{ z.pick }}">{{ z.label }}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:var(--space-4);right:var(--space-4);bottom:84px;z-index:5">
+                <button class="btn btn-primary btn-block" style="justify-content:space-between;box-shadow:var(--shadow-md)" onClick="{{ goCart }}"><span>{{ cartCount }} items · ₹{{ cartTotal }}</span><span>View cart →</span></button>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ cInfo }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <button class="btn btn-ghost" style="align-self:flex-start" onClick="{{ goStall }}">← Back to menu</button>
+              <div style="width:96px;height:96px;border-radius:999px;background:var(--color-accent-2-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:38px;color:var(--color-accent-2-800);margin-left:var(--space-2)">{{ stall.ownerInitial }}</div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:0 var(--space-2)">
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">{{ stall.owner }}</h2>
+                <span style="font-size:14px;color:var(--color-accent-700);font-weight:600">{{ stall.ownerRole }}</span>
+                <p style="margin:0;font-size:15px;line-height:1.55;text-wrap:pretty">{{ stall.about }}</p>
+              </div>
+              <div class="card" style="display:flex;flex-direction:column;gap:var(--space-3);border-radius:var(--radius-lg)">
+                <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>Stall</span><strong>{{ stall.name }}</strong></div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>Open</span><strong>{{ stall.hours }}</strong></div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>Pays to UPI</span><strong>{{ stall.upi }}</strong></div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>To the school</span><strong>{{ stall.cutPct }}% · {{ stall.cause }}</strong></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cCart }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);flex:1">
+              <button class="btn btn-ghost" style="align-self:flex-start" onClick="{{ goStall }}">← Keep browsing</button>
+              <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0;padding:0 var(--space-2)">Your order</h2>
+              <span style="font-size:14px;padding:0 var(--space-2)">From {{ stall.name }}</span>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-4)">
+                <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;gap:var(--space-3);font-size:15px"><span>{{ l.qty }} × {{ l.label }}</span><strong>₹{{ l.sum }}</strong></div>
+                </sc-for>
+                <div style="display:flex;justify-content:space-between;font-size:18px;padding-top:var(--space-3);margin-top:var(--space-1);border-top:2px dashed var(--color-neutral-300)"><strong>Total</strong><strong>₹{{ cartTotal }}</strong></div>
+                <span style="font-size:13px;color:var(--color-accent-2-800);font-weight:600">₹{{ cartToSchool }} of this goes to {{ stall.cause }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:0 var(--space-2)">
+                <span style="font-size:14px;font-weight:600">Add a little extra for the school?</span>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <sc-for list="{{ extraOpts }}" as="d" hint-placeholder-count="4"><button class="{{ d.cls }}" style="font-size:14px" onClick="{{ d.pick }}">{{ d.label }}</button></sc-for>
+                </div>
+              </div>
+              <div style="display:flex;gap:var(--space-2);align-items:center;font-size:14px;padding:0 var(--space-2)"><span>Pickup as</span><strong>{{ userName }}</strong><span>· {{ userPhone }}</span></div>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary btn-block" onClick="{{ openPay }}">Pay ₹{{ cartTotal }} with UPI</button>
+              <sc-if value="{{ canHold }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-secondary btn-block" onClick="{{ hold }}">Hold for 15 min · pay at the stall</button>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cSuccess }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:0 var(--space-2)">
+                <span class="tag tag-accent-2" style="align-self:flex-start">{{ lastOrder.payLabel }}</span>
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">{{ lastOrder.headline }}</h2>
+                <span style="font-size:15px">Show this token at {{ lastOrder.stallName }}.</span>
+              </div>
+              <div style="background:var(--color-accent);color:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-1)">
+                <span style="font-size:14px;font-weight:600">Your token</span>
+                <span style="font-family:var(--font-heading);font-size:72px;line-height:1">{{ lastOrder.token }}</span>
+                <span style="font-size:14px">{{ lastOrder.aheadText }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-4)">
+                <sc-for list="{{ lastOrder.items }}" as="l" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;font-size:15px"><span>{{ l.qty }} × {{ l.label }}</span><span>₹{{ l.sum }}</span></div>
+                </sc-for>
+                <div style="display:flex;justify-content:space-between;font-size:16px;padding-top:var(--space-2)"><strong>{{ lastOrder.app }}</strong><strong>₹{{ lastOrder.total }}</strong></div>
+              </div>
+              <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                <a class="btn btn-primary" href="{{ lastOrder.waSelf }}" target="_blank" rel="noopener" style="text-decoration:none">Receipt on WhatsApp</a>
+                <button class="btn btn-secondary" onClick="{{ goInfo }}">Meet the owner</button>
+                <button class="btn btn-ghost" onClick="{{ goHome }}">More stalls</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cOrders }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);padding:0 var(--space-2)"><h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">My orders</h2><button class="btn btn-ghost" style="font-size:13px" onClick="{{ customerLogout }}">Not {{ userName }}?</button></div>
+              <sc-if value="{{ noMyOrders }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:0 var(--space-2)">No orders yet. Pick a stall to get started.</p></sc-if>
+              <sc-for list="{{ myOrders }}" as="o" hint-placeholder-count="2">
+                <div style="display:flex;gap:var(--space-3);align-items:center;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+                  <div style="width:64px;height:64px;flex:none;border-radius:999px;background:var(--color-accent-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:20px;color:var(--color-accent-800)">{{ o.token }}</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <strong>{{ o.stallName }}</strong>
+                    <span style="font-size:13px">{{ o.summary }}</span>
+                    <span class="{{ o.tagClass }}" style="align-self:flex-start">{{ o.statusLabel }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ showCNav }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:var(--space-2);padding:var(--space-3) var(--space-4) var(--space-4);background:var(--color-bg);box-shadow:var(--shadow-sm)">
+            <button class="{{ cNavStalls }}" style="flex:1" onClick="{{ goHome }}">Stalls</button>
+            <button class="{{ cNavOrders }}" style="flex:1" onClick="{{ goOrders }}">My orders{{ myActiveBadge }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ payChoose }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;z-index:20;background:color-mix(in srgb, var(--color-text) 40%, transparent);display:flex;align-items:flex-end">
+            <div style="background:var(--color-bg);width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <h3 style="font-family:var(--font-heading);font-weight:400;font-size:24px;margin:0">Pay with</h3>
+              <span style="font-size:14px">₹{{ cartTotal }} to {{ stall.upi }}</span>
+              <sc-for list="{{ upiApps }}" as="a" hint-placeholder-count="4">
+                <button class="btn btn-secondary btn-block" style="justify-content:flex-start" onClick="{{ a.pick }}">{{ a.name }}</button>
+              </sc-for>
+              <button class="btn btn-ghost" onClick="{{ closePay }}">Cancel</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ payOpening }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;z-index:20;background:var(--color-accent-2-800);color:var(--color-bg);display:flex;flex-direction:column;padding:var(--space-8) var(--space-6);gap:var(--space-4)">
+            <span style="font-size:14px;font-weight:600">Opened {{ payApp }}</span>
+            <h3 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">Everything's filled in — just enter your UPI PIN</h3>
+            <div style="background:var(--color-accent-2-700);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);font-size:15px">
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>To</span><strong>{{ stall.name }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>UPI ID</span><strong>{{ stall.upi }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>Amount</span><strong>₹{{ cartTotal }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3)"><span>Note</span><strong>Token {{ nextToken }}</strong></div>
+            </div>
+            <span style="font-size:12px;word-break:break-all;opacity:.85">{{ upiLink }}</span>
+            <div style="flex:1"></div>
+            <button class="btn btn-primary btn-block" onClick="{{ paid }}">Payment done — back to Stall Day</button>
+            <button class="btn btn-ghost" style="color:var(--color-bg)" onClick="{{ closePay }}">Cancel payment</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- OWNER PHONE -->
+    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <div style="display:flex;align-items:center;gap:var(--space-2);min-height:44px;flex-wrap:wrap">
+        <span class="tag tag-accent-2">Stall owner</span>
+        <span style="font-size:13px">Demo login:</span>
+        <sc-for list="{{ ownerSwitch }}" as="w" hint-placeholder-count="3">
+          <button class="{{ w.cls }}" style="font-size:13px;padding-left:var(--space-3);padding-right:var(--space-3)" onClick="{{ w.pick }}">{{ w.name }}</button>
+        </sc-for>
+      </div>
+      <div style="width:380px;height:780px;border-radius:48px;border:10px solid var(--color-text);background:var(--color-bg);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;display:flex;flex-direction:column">
+
+        <sc-if value="{{ oNotice }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:var(--space-3);left:var(--space-3);right:var(--space-3);z-index:30;background:var(--color-accent-700);color:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:2px">
+            <strong style="font-size:15px">{{ oNoticeTitle }}</strong>
+            <span style="font-size:14px">{{ oNotice }}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ oLoggedOut }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;overflow-y:auto;padding:var(--space-8) var(--space-6);display:flex;flex-direction:column;gap:var(--space-4)">
+            <div style="width:88px;height:88px;border-radius:999px;background:var(--color-accent-2-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:36px;color:var(--color-accent-2-800)">S</div>
+            <sc-if value="{{ oLoginMode }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:32px;margin:0">Stall login</h2>
+                <p style="margin:0;font-size:15px;line-height:1.5">Your phone number and the 4-digit PIN you chose.</p>
+              </div>
+              <div class="field"><label>WhatsApp number</label><input class="input" inputMode="tel" placeholder="10-digit mobile" value="{{ login.phone }}" onChange="{{ login.setPhone }}"></input></div>
+              <div class="field"><label>PIN</label><input class="input" type="password" inputMode="numeric" maxLength="4" placeholder="••••" value="{{ login.pin }}" onChange="{{ login.setPin }}"></input></div>
+              <sc-if value="{{ login.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:600;color:var(--color-accent-800)">{{ login.err }}</span></sc-if>
+              <button class="btn btn-primary btn-block" onClick="{{ login.submit }}">Log in</button>
+              <div style="flex:1"></div>
+              <button class="btn btn-secondary btn-block" onClick="{{ login.toJoin }}">New stall? Join with invite code</button>
+              <span style="font-size:13px">Forgot your PIN? Ask the school admin to reset it.</span>
+            </sc-if>
+            <sc-if value="{{ oJoinMode }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:32px;margin:0">Join the fair</h2>
+                <p style="margin:0;font-size:15px;line-height:1.5">Get the invite code from the school admin. You'll add your menu and UPI ID next.</p>
+              </div>
+              <div class="field"><label>Invite code</label><input class="input" placeholder="e.g. FAIR24" style="text-transform:uppercase" value="{{ join.code }}" onChange="{{ join.setCode }}"></input></div>
+              <div class="field"><label>Stall name</label><input class="input" placeholder="e.g. Mango Masti" value="{{ join.stall }}" onChange="{{ join.setStall }}"></input></div>
+              <div class="field"><label>Your name</label><input class="input" value="{{ join.owner }}" onChange="{{ join.setOwner }}"></input></div>
+              <div class="field"><label>WhatsApp number</label><input class="input" inputMode="tel" value="{{ join.phone }}" onChange="{{ join.setPhone }}"></input><span style="font-size:12px">Used to log in, and for reminders and thank-yous from the school.</span></div>
+              <div class="field"><label>Choose a 4-digit PIN</label><input class="input" type="password" inputMode="numeric" maxLength="4" value="{{ join.pin }}" onChange="{{ join.setPin }}"></input></div>
+              <sc-if value="{{ join.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:600;color:var(--color-accent-800)">{{ join.err }}</span></sc-if>
+              <button class="btn btn-primary btn-block" onClick="{{ join.submit }}">Create my stall</button>
+              <button class="btn btn-ghost btn-block" onClick="{{ join.toLogin }}">I already have a stall</button>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ oLoggedIn }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+
+          <sc-if value="{{ oQueue }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <div style="display:flex;flex-direction:column;gap:2px;padding:0 var(--space-2)">
+                <span style="font-size:14px">{{ ownerStall.name }}</span>
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">Orders</h2>
+              </div>
+              <sc-if value="{{ isHelper }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:999px;background:var(--color-accent-2-100)">
+                  <span style="font-size:13px;flex:1">Helper login · <strong>{{ helperName }}</strong> · orders &amp; cash only</span>
+                  <button class="btn btn-ghost" style="font-size:13px" onClick="{{ ownerLogout }}">Log out</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ ownerStallView.paused }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-100)">
+                  <strong style="color:var(--color-accent-800)">Orders paused</strong>
+                  <input class="input" value="{{ ownerStall.pauseMsg }}" onChange="{{ setPauseMsg }}"></input>
+                  <button class="btn btn-primary btn-block" onClick="{{ togglePause }}">Resume orders</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ ownerStallView.live }}" hint-placeholder-val="{{ true }}">
+                <button class="btn btn-ghost" style="align-self:flex-start;font-size:14px" onClick="{{ togglePause }}">Taking a break? Pause orders</button>
+              </sc-if>
+              <div style="display:flex;gap:var(--space-2)">
+                <button class="{{ tabPending }}" style="flex:1;padding-left:0;padding-right:0" onClick="{{ tabToPending }}">Pending {{ countPending }}</button>
+                <button class="{{ tabReady }}" style="flex:1;padding-left:0;padding-right:0" onClick="{{ tabToReady }}">Ready {{ countReady }}</button>
+                <button class="{{ tabDone }}" style="flex:1;padding-left:0;padding-right:0" onClick="{{ tabToDone }}">Done {{ countDone }}</button>
+              </div>
+              <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:var(--space-4) var(--space-2)">Nothing here right now.</p></sc-if>
+              <sc-for list="{{ queue }}" as="q" hint-placeholder-count="3">
+                <button onClick="{{ q.open }}" style="all:unset;cursor:pointer;display:flex;gap:var(--space-3);align-items:center;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:{{ q.shadow }}">
+                  <div style="width:64px;height:64px;flex:none;border-radius:999px;background:var(--color-accent-200);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:20px;color:var(--color-accent-800)">{{ q.token }}</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <div style="display:flex;justify-content:space-between;gap:var(--space-2)"><strong>{{ q.name }}</strong><span style="font-size:13px">{{ q.time }}</span></div>
+                    <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.summary }}</span>
+                    <div style="display:flex;gap:var(--space-2);align-items:center"><span class="{{ q.tagClass }}">{{ q.statusLabel }}</span><strong style="font-size:14px">₹{{ q.total }}</strong><span style="font-size:12px">{{ q.app }}</span></div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oDetail }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);flex:1">
+              <button class="btn btn-ghost" style="align-self:flex-start" onClick="{{ backQueue }}">← Orders</button>
+              <div style="display:flex;align-items:center;gap:var(--space-4);padding:0 var(--space-2)">
+                <span style="font-family:var(--font-heading);font-size:56px;line-height:1;color:var(--color-accent-700)">{{ oOrder.token }}</span>
+                <div style="display:flex;flex-direction:column;gap:4px"><span class="{{ oOrder.tagClass }}">{{ oOrder.statusLabel }}</span><span style="font-size:13px">Placed {{ oOrder.time }}{{ oOrder.holdText }}</span></div>
+              </div>
+              <div class="card" style="display:flex;flex-direction:column;gap:var(--space-2);border-radius:var(--radius-lg)">
+                <span class="card-kicker">Customer</span>
+                <strong style="font-size:18px">{{ oOrder.name }}</strong>
+                <sc-if value="{{ oOrder.hasPhone }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap">
+                    <a href="tel:{{ oOrder.phone }}" style="font-size:15px">{{ oOrder.phone }}</a>
+                    <a href="{{ oOrder.waCustomer }}" target="_blank" rel="noopener" style="font-size:14px;font-weight:600">Receipt on WhatsApp</a>
+                    <sc-if value="{{ oOrder.isReady }}" hint-placeholder-val="{{ false }}"><a href="{{ oOrder.waReady }}" target="_blank" rel="noopener" style="font-size:14px;font-weight:600">"Ready" on WhatsApp</a></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-4)">
+                <span class="card-kicker">Items</span>
+                <sc-for list="{{ oOrder.items }}" as="l" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;font-size:16px"><span><strong>{{ l.qty }} ×</strong> {{ l.label }}</span><span>₹{{ l.sum }}</span></div>
+                </sc-for>
+                <div style="display:flex;justify-content:space-between;font-size:16px;padding-top:var(--space-2)"><strong>{{ oOrder.app }}</strong><strong>₹{{ oOrder.total }}</strong></div>
+              </div>
+              <div style="flex:1"></div>
+              <sc-if value="{{ oOrder.isVerify }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:13px;padding:0 var(--space-2)">Check your UPI app for ₹{{ oOrder.total }} from {{ oOrder.name }} first.</span>
+                <button class="btn btn-primary btn-block" onClick="{{ oOrder.confirmPay }}">Payment received</button>
+              </sc-if>
+              <sc-if value="{{ oOrder.isHold }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-primary btn-block" onClick="{{ oOrder.holdPaid }}">Paid cash · handed over</button>
+                <button class="btn btn-ghost btn-block" onClick="{{ oOrder.release }}">Release hold · back to stock</button>
+              </sc-if>
+              <sc-if value="{{ oOrder.isPending }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-primary btn-block" onClick="{{ oOrder.ready }}">Mark ready · notify {{ oOrder.firstName }}</button>
+              </sc-if>
+              <sc-if value="{{ oOrder.isReady }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-primary btn-block" onClick="{{ oOrder.done }}">Handed over</button>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oMenu }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);padding:0 var(--space-2)">
+                <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0">Items</h2>
+                <button class="btn btn-primary" onClick="{{ newItem }}">+ Add item</button>
+              </div>
+              <span style="font-size:14px;padding:0 var(--space-2)">Photos, prices and stock. Counts drop with every sale; at zero the item shows sold out.</span>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><strong>Combos</strong><sc-if value="{{ noComboDraft }}" hint-placeholder-val="{{ true }}"><button class="btn btn-ghost" style="font-size:13px" onClick="{{ newCombo }}">+ Add combo</button></sc-if></div>
+                <sc-for list="{{ ownerCombos }}" as="k" hint-placeholder-count="1">
+                  <div style="display:flex;align-items:center;gap:var(--space-2)"><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">{{ k.name }} · {{ k.priceStr }}</span><span style="font-size:12px">{{ k.partsText }}</span></div><button class="btn btn-ghost" style="font-size:13px" onClick="{{ k.remove }}">Remove</button></div>
+                </sc-for>
+                <sc-if value="{{ comboDraft.on }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:13px">Pick 2 or more items</span>
+                  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                    <sc-for list="{{ comboDraft.chips }}" as="c" hint-placeholder-count="4"><button class="{{ c.cls }}" style="cursor:pointer;border:none;font:inherit;font-size:13px" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for>
+                  </div>
+                  <span style="font-size:13px">Items add up to ₹{{ comboDraft.full }}</span>
+                  <div style="display:flex;gap:var(--space-2)">
+                    <input class="input" style="flex:2;min-width:0" placeholder="Combo name (optional)" value="{{ comboDraft.name }}" onChange="{{ comboDraft.setName }}"></input>
+                    <input class="input" style="flex:1;min-width:0" inputMode="numeric" placeholder="₹ price" value="{{ comboDraft.price }}" onChange="{{ comboDraft.setPrice }}"></input>
+                  </div>
+                  <div style="display:flex;gap:var(--space-2)"><button class="btn btn-ghost" onClick="{{ comboDraft.cancel }}">Cancel</button><button class="btn btn-primary" style="flex:1" onClick="{{ comboDraft.save }}" disabled="{{ comboDraft.invalid }}">Save combo</button></div>
+                </sc-if>
+              </div>
+              <sc-for list="{{ ownerMenu }}" as="m" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+                  <div style="display:flex;gap:var(--space-3);align-items:center">
+                    <sc-if value="{{ m.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:48px;height:48px;flex:none;border-radius:999px;overflow:hidden"><div role="img" style="width:100%;height:100%;background-image:url({{ m.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                    <sc-if value="{{ m.noPhoto }}" hint-placeholder-val="{{ true }}"><div style="width:48px;height:48px;flex:none;border-radius:999px;border:2px dashed var(--color-neutral-400);display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center;line-height:1.1">No photo</div></sc-if>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><strong>{{ m.name }}</strong><span style="font-size:13px">{{ m.priceStr }} · {{ m.soldCount }} sold</span></div>
+                    <button class="btn btn-ghost" style="font-size:13px" onClick="{{ m.edit }}">Edit</button>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:var(--space-2)">
+                    <button class="btn btn-icon btn-secondary" onClick="{{ m.dec }}" aria-label="Less stock">−</button>
+                    <strong style="min-width:28px;text-align:center;font-size:18px;color:{{ m.stockColor }}">{{ m.stock }}</strong>
+                    <button class="btn btn-icon btn-secondary" onClick="{{ m.inc }}" aria-label="More stock">+</button>
+                    <span style="font-size:13px">left</span>
+                    <div style="flex:1"></div>
+                    <button class="{{ m.toggleClass }}" style="font-size:13px" onClick="{{ m.toggle }}">{{ m.toggleLabel }}</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oItem }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <button class="btn btn-ghost" style="align-self:flex-start" onClick="{{ cancelDraft }}">← Items</button>
+              <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0;padding:0 var(--space-2)">{{ draft.title }}</h2>
+              <label style="display:flex;gap:var(--space-4);align-items:center;cursor:pointer;padding:var(--space-3);border-radius:var(--radius-lg);background:var(--color-surface)">
+                <sc-if value="{{ draft.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:88px;height:88px;flex:none;border-radius:999px;overflow:hidden"><div role="img" style="width:100%;height:100%;background-image:url({{ draft.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                <sc-if value="{{ draft.noPhoto }}" hint-placeholder-val="{{ true }}"><div style="width:88px;height:88px;flex:none;border-radius:999px;border:3px dashed var(--color-neutral-400);display:flex;align-items:center;justify-content:center;font-size:13px">+ Photo</div></sc-if>
+                <div style="display:flex;flex-direction:column;gap:2px"><strong>{{ draft.photoLabel }}</strong><span style="font-size:13px">Take a photo or pick one from your gallery</span></div>
+                <input type="file" accept="image/*" style="display:none" onChange="{{ draftPhoto }}">
+              </label>
+              <div class="field"><label>Item name</label><input class="input" placeholder="e.g. Veg puff" value="{{ draft.name }}" onChange="{{ dName }}"></input></div>
+              <div class="field"><label>Short description</label><input class="input" placeholder="e.g. Fresh from the oven" value="{{ draft.note }}" onChange="{{ dNote }}"></input></div>
+              <div class="field"><label>Food &amp; allergy tags</label>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <sc-for list="{{ draft.tagChips }}" as="t" hint-placeholder-count="6"><button class="{{ t.cls }}" style="cursor:pointer;border:none;font:inherit;font-size:13px" onClick="{{ t.pick }}">{{ t.label }}</button></sc-for>
+                </div>
+              </div>
+              <div style="display:flex;gap:var(--space-3)">
+                <div class="field" style="flex:1"><label>Price (₹)</label><input class="input" inputMode="numeric" value="{{ draft.price }}" onChange="{{ dPrice }}"></input></div>
+                <div class="field" style="flex:1"><label>Stock</label><input class="input" inputMode="numeric" value="{{ draft.stock }}" onChange="{{ dStock }}"></input></div>
+              </div>
+              <sc-if value="{{ draft.showSizes }}" hint-placeholder-val="{{ false }}">
+                <div class="field"><label>Sizes (optional, comma separated)</label><input class="input" placeholder="S, M, L" value="{{ draft.sizes }}" onChange="{{ dSizes }}"></input></div>
+              </sc-if>
+              <button class="btn btn-primary btn-block" onClick="{{ saveDraft }}" disabled="{{ draft.invalid }}">Save item</button>
+              <sc-if value="{{ draft.isExisting }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost btn-block" onClick="{{ deleteItem }}">Remove item</button></sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oCash }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);flex:1">
+              <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0;padding:0 var(--space-2)">Cash sale</h2>
+              <span style="font-size:14px;padding:0 var(--space-2)">For walk-ups paying cash. Tap items to add.</span>
+              <sc-for list="{{ cashMenu }}" as="m" hint-placeholder-count="5">
+                <button onClick="{{ m.add }}" disabled="{{ m.disabled }}" style="all:unset;cursor:pointer;display:flex;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:{{ m.bg }};opacity:{{ m.opacity }}">
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px"><strong>{{ m.name }}</strong><span style="font-size:13px">{{ m.priceStr }} · {{ m.stock }} left</span></div>
+                  <sc-if value="{{ m.hasQty }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--font-heading);font-size:22px;color:var(--color-accent-800)">×{{ m.qty }}</span></sc-if>
+                </button>
+              </sc-for>
+              <div style="flex:1"></div>
+              <sc-if value="{{ hasCash }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:var(--space-2)">
+                  <button class="btn btn-ghost" onClick="{{ clearCash }}">Clear</button>
+                  <button class="btn btn-primary" style="flex:1" onClick="{{ recordCash }}">Record ₹{{ cashTotal }} cash</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oSetup }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0;padding:0 var(--space-2)">My stall</h2>
+              <span style="font-size:14px;padding:0 var(--space-2)">Everything customers see about your stall. Changes go live instantly.</span>
+              <label style="display:flex;gap:var(--space-4);align-items:center;cursor:pointer;padding:var(--space-3);border-radius:var(--radius-lg);background:var(--color-surface)">
+                <sc-if value="{{ ownerStallView.hasPhoto }}" hint-placeholder-val="{{ false }}"><div class="washed" style="width:88px;height:88px;flex:none;border-radius:999px;overflow:hidden"><div role="img" style="width:100%;height:100%;background-image:url({{ ownerStall.photo }});background-size:cover;background-position:center"></div></div></sc-if>
+                <sc-if value="{{ ownerStallView.noPhoto }}" hint-placeholder-val="{{ true }}"><div style="width:88px;height:88px;flex:none;border-radius:999px;border:3px dashed var(--color-neutral-400);display:flex;align-items:center;justify-content:center;font-size:13px">+ Photo</div></sc-if>
+                <div style="display:flex;flex-direction:column;gap:2px"><strong>Stall photo</strong><span style="font-size:13px">Your stall, your food or your logo</span></div>
+                <input type="file" accept="image/*" style="display:none" onChange="{{ stallPhoto }}">
+              </label>
+              <div class="field"><label>Stall name</label><input class="input" value="{{ ownerStall.name }}" onChange="{{ setName }}"></input></div>
+              <div class="field"><label>UPI ID for payments</label><input class="input" value="{{ ownerStall.upi }}" onChange="{{ setUpi }}"></input></div>
+              <div class="field"><label>What do you sell?</label>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <sc-for list="{{ catOpts }}" as="c" hint-placeholder-count="4"><button class="{{ c.cls }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for>
+                </div>
+                <sc-if value="{{ otherCat }}" hint-placeholder-val="{{ false }}">
+                  <input class="input" placeholder="e.g. Books, Plants, Toys, Games" value="{{ otherCatValue }}" onChange="{{ setOtherCat }}"></input>
+                </sc-if>
+              </div>
+              <div class="field"><label>Open hours</label><input class="input" placeholder="e.g. 10 am – 1 pm" value="{{ ownerStall.hours }}" onChange="{{ setHours }}"></input></div>
+              <div class="field"><label>Your name</label><input class="input" value="{{ ownerStall.owner }}" onChange="{{ setOwner }}"></input></div>
+              <div class="field"><label>How you're connected to the school</label><input class="input" placeholder="e.g. Parent · Class 4B" value="{{ ownerStall.ownerRole }}" onChange="{{ setRole }}"></input></div>
+              <div class="field"><label>About you &amp; the stall</label><textarea class="input" style="border-radius:var(--radius-md);min-height:96px;resize:vertical" value="{{ ownerStall.about }}" onChange="{{ setAbout }}"></textarea></div>
+              <div class="field"><label>Your sales support</label>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <sc-for list="{{ causeOpts }}" as="c" hint-placeholder-count="4"><button class="{{ c.cls }}" style="font-size:14px" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for>
+                </div>
+                <span style="font-size:12px">Causes are set up by the school admin.</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)"><span>School share (set by admin)</span><strong>{{ ownerStall.cutPct }}%</strong></div>
+              <div style="display:flex;gap:var(--space-4);align-items:center;background:var(--color-surface);border-radius:var(--radius-lg);padding:var(--space-4)">
+                <div role="img" aria-label="Stall QR code" style="width:112px;height:112px;flex:none;border-radius:var(--radius-md);background-color:#fff;background-image:url({{ stallQr.url }});background-size:100px 100px;background-repeat:no-repeat;background-position:center"></div>
+                <div style="display:flex;flex-direction:column;gap:var(--space-2)"><strong>Print &amp; stick at the stall</strong><span style="font-size:13px">Scanning opens your menu directly.</span><span style="font-size:11px;word-break:break-all">{{ stallQr.link }}</span><a class="btn btn-secondary" style="align-self:flex-start;text-decoration:none" href="{{ stallQr.url }}" download="{{ stallQr.file }}">Download QR</a></div>
+              </div>
+              <button class="btn btn-secondary btn-block" onClick="{{ printList }}">Print price list with QR</button>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+                <h3 style="font-family:var(--font-heading);font-weight:400;font-size:22px;margin:0">Helpers</h3>
+                <span style="font-size:13px">Volunteers who log in with their own PIN. They can take orders and cash sales, not change prices or see totals.</span>
+                <sc-for list="{{ ownerHelpers }}" as="hp" hint-placeholder-count="1">
+                  <div style="display:flex;align-items:center;gap:var(--space-2)"><div style="flex:1;display:flex;flex-direction:column"><strong style="font-size:14px">{{ hp.name }}</strong><span style="font-size:12px">{{ hp.phone }} · PIN {{ hp.pin }}</span></div><button class="btn btn-ghost" style="font-size:13px" onClick="{{ hp.remove }}">Remove</button></div>
+                </sc-for>
+                <input class="input" placeholder="Helper name" value="{{ helperDraft.name }}" onChange="{{ helperDraft.setName }}"></input>
+                <div style="display:flex;gap:var(--space-2)">
+                  <input class="input" style="flex:2;min-width:0" inputMode="tel" placeholder="WhatsApp no." value="{{ helperDraft.phone }}" onChange="{{ helperDraft.setPhone }}"></input>
+                  <input class="input" style="flex:1;min-width:0" inputMode="numeric" placeholder="PIN" value="{{ helperDraft.pin }}" onChange="{{ helperDraft.setPin }}"></input>
+                </div>
+                <button class="btn btn-secondary" onClick="{{ helperDraft.add }}" disabled="{{ helperDraft.invalid }}">+ Add helper</button>
+              </div>
+              <button class="btn btn-ghost btn-block" onClick="{{ ownerLogout }}">Log out</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ oSales }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+              <h2 style="font-family:var(--font-heading);font-weight:400;font-size:30px;margin:0;padding:0 var(--space-2)">Today's sales</h2>
+              <div style="background:var(--color-accent-2);color:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-1)">
+                <span style="font-size:14px;font-weight:600">Total collected</span>
+                <span style="font-family:var(--font-heading);font-size:56px;line-height:1">₹{{ ownerSales.total }}</span>
+                <span style="font-size:14px">{{ ownerSales.count }} orders · UPI ₹{{ ownerSales.upi }} · Cash ₹{{ ownerSales.cash }}</span>
+              </div>
+              <div style="display:flex;gap:var(--space-3)">
+                <div style="flex:1;display:flex;flex-direction:column;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)"><span style="font-size:13px">To school · {{ ownerStall.cutPct }}%</span><strong style="font-size:22px">₹{{ ownerSales.school }}</strong></div>
+                <div style="flex:1;display:flex;flex-direction:column;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)"><span style="font-size:13px">You keep</span><strong style="font-size:22px">₹{{ ownerSales.keep }}</strong></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)">
+                  <h3 style="font-family:var(--font-heading);font-weight:400;font-size:22px;margin:0">Settle with school</h3>
+                  <sc-if value="{{ ownerSettle.isSettled }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent-2">Settled ✓</span></sc-if>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span>School share so far</span><strong>₹{{ ownerSales.school }}</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span>Already received by school</span><strong>₹{{ ownerSettle.received }}</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:16px"><strong>Still to pay</strong><strong>₹{{ ownerSettle.due }}</strong></div>
+                <sc-if value="{{ ownerSettle.hasDue }}" hint-placeholder-val="{{ true }}">
+                  <a class="btn btn-primary btn-block" href="{{ ownerSettle.upiLink }}" style="text-decoration:none">Pay ₹{{ ownerSettle.due }} to school via UPI</a>
+                  <span style="font-size:12px">Goes to {{ schoolUpi }}. The school admin marks it received.</span>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)">
+                  <h3 style="font-family:var(--font-heading);font-weight:400;font-size:22px;margin:0">End-of-day match-up</h3>
+                  <sc-if value="{{ close.closed }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent-2">Closed {{ close.closedAt }}</span></sc-if>
+                </div>
+                <span style="font-size:13px">Check what actually came in against what the app recorded.</span>
+                <sc-if value="{{ close.hasUnconfirmed }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:13px;font-weight:600;color:var(--color-accent-700)">{{ close.unconfirmedText }}</span>
+                </sc-if>
+                <div style="display:flex;flex-direction:column;gap:var(--space-1)">
+                  <div style="display:flex;justify-content:space-between;font-size:14px"><span>App recorded UPI</span><strong>₹{{ ownerSales.upi }}</strong></div>
+                  <div class="field"><label>Your UPI app shows (₹)</label><input class="input" inputMode="numeric" placeholder="Total received today" value="{{ close.upiActual }}" onChange="{{ close.setUpi }}" disabled="{{ close.closed }}"></input></div>
+                  <span style="font-size:13px;font-weight:600;color:{{ close.upiColor }}">{{ close.upiDiff }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:var(--space-1)">
+                  <div style="display:flex;justify-content:space-between;font-size:14px"><span>App recorded cash</span><strong>₹{{ ownerSales.cash }}</strong></div>
+                  <div class="field"><label>Cash counted in the box (₹)</label><input class="input" inputMode="numeric" placeholder="Leave out your starting change" value="{{ close.cashActual }}" onChange="{{ close.setCash }}" disabled="{{ close.closed }}"></input></div>
+                  <span style="font-size:13px;font-weight:600;color:{{ close.cashColor }}">{{ close.cashDiff }}</span>
+                </div>
+                <div class="field"><label>Note (optional)</label><input class="input" placeholder="e.g. Gave ₹20 change from my own pocket" value="{{ close.note }}" onChange="{{ close.setNote }}" disabled="{{ close.closed }}"></input></div>
+                <sc-if value="{{ close.open }}" hint-placeholder-val="{{ true }}"><button class="btn btn-primary btn-block" onClick="{{ close.closeDay }}" disabled="{{ close.cantClose }}">Close the day</button></sc-if>
+                <sc-if value="{{ close.closed }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost btn-block" onClick="{{ close.reopen }}">Reopen</button></sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-6);border-radius:var(--radius-lg);background:var(--color-accent-100)">
+                <span style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent-800)">Thank you!</span>
+                <span style="font-family:var(--font-heading);font-weight:400;font-size:28px;line-height:1.15">{{ thanks.headline }}</span>
+                <span style="font-size:14px">{{ thanks.sub }}</span>
+                <a class="btn btn-secondary" href="{{ thanks.wa }}" target="_blank" rel="noopener" style="text-decoration:none;align-self:flex-start">Share on WhatsApp</a>
+              </div>
+              <span style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:0 var(--space-2)">Best sellers</span>
+              <sc-for list="{{ ownerSales.top }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)"><span>{{ t.name }}</span><strong>{{ t.qty }} sold</strong></div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;gap:2px;padding:var(--space-3) var(--space-2) var(--space-4);background:var(--color-bg);box-shadow:var(--shadow-sm)">
+          <button class="{{ oNavQueue }}" style="flex:1;padding-left:0;padding-right:0;font-size:13px" onClick="{{ backQueue }}">Orders</button>
+          <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}"><button class="{{ oNavMenu }}" style="flex:1;padding-left:0;padding-right:0;font-size:13px" onClick="{{ toMenu }}">Items</button></sc-if>
+          <button class="{{ oNavCash }}" style="flex:1;padding-left:0;padding-right:0;font-size:13px" onClick="{{ toCash }}">Cash</button>
+          <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}"><button class="{{ oNavSales }}" style="flex:1;padding-left:0;padding-right:0;font-size:13px" onClick="{{ toSales }}">Sales</button></sc-if>
+          <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}"><button class="{{ oNavSetup }}" style="flex:1;padding-left:0;padding-right:0;font-size:13px" onClick="{{ toSetup }}">Stall</button></sc-if>
+        </div>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- ADMIN + IDEAS -->
+    <div style="flex:1 1 360px;min-width:0;max-width:600px;display:flex;flex-direction:column;gap:var(--space-6)">
+      <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+        <div style="display:flex;align-items:center;gap:var(--space-2);min-height:44px"><span class="tag tag-neutral">School admin</span><span style="font-size:14px">Whole-fair view, live</span><div style="flex:1"></div><sc-if value="{{ adminIn }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ adminLogout }}">Lock</button></sc-if></div>
+        <sc-if value="{{ adminOut }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4);max-width:400px">
+            <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">Admin login</h3>
+            <p style="margin:0;font-size:15px;line-height:1.5">Only the fair organisers see sales, settle-ups and stall logins.</p>
+            <div class="field"><label>Admin email</label><input class="input" value="{{ adminLogin.email }}" onChange="{{ adminLogin.setEmail }}"></input></div>
+            <div class="field"><label>Password</label><input class="input" type="password" placeholder="Demo: fair2024" value="{{ adminLogin.pw }}" onChange="{{ adminLogin.setPw }}"></input></div>
+            <sc-if value="{{ adminLogin.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:600;color:var(--color-accent-800)">{{ adminLogin.err }}</span></sc-if>
+            <button class="btn btn-primary btn-block" onClick="{{ adminLogin.submit }}">Log in</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ adminIn }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+        <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="display:flex;gap:var(--space-6);flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column"><span style="font-size:13px">Total sales</span><span style="font-family:var(--font-heading);font-size:36px;line-height:1.1">₹{{ admin.total }}</span></div>
+            <div style="display:flex;flex-direction:column"><span style="font-size:13px">Raised for school</span><span style="font-family:var(--font-heading);font-size:36px;line-height:1.1;color:var(--color-accent-2-700)">₹{{ admin.school }}</span></div>
+            <div style="display:flex;flex-direction:column"><span style="font-size:13px">Orders</span><span style="font-family:var(--font-heading);font-size:36px;line-height:1.1">{{ admin.count }}</span></div>
+          </div>
+          <span style="font-size:13px">UPI ₹{{ admin.upi }} · Cash ₹{{ admin.cash }} · Donations ₹{{ admin.donations }} · {{ admin.waiting }} waiting now</span>
+          <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+            <button class="btn btn-secondary" onClick="{{ exportOrders }}">Download all orders (Excel)</button>
+            <button class="btn btn-ghost" onClick="{{ exportStalls }}">Stall summary (Excel)</button>
+          </div>
+          <table class="table" style="width:100%">
+            <thead><tr><th>Stall</th><th style="text-align:right">Sales</th><th style="text-align:center">School %</th><th style="text-align:right">To school</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ admin.rows }}" as="r" hint-placeholder-count="3">
+                <tr>
+                  <td><strong>{{ r.name }}</strong><br></br><span style="font-size:13px">{{ r.count }} orders · {{ r.category }} · for {{ r.cause }}</span><br></br><span class="{{ r.closeCls }}" style="margin-top:4px;display:inline-block">{{ r.closeLabel }}</span></td>
+                  <td style="text-align:right">₹{{ r.total }}</td>
+                  <td><div style="display:flex;align-items:center;justify-content:center;gap:4px"><button class="btn btn-ghost" style="padding:0 8px;min-height:0" onClick="{{ r.dec }}" aria-label="Lower share">−</button><strong>{{ r.pct }}%</strong><button class="btn btn-ghost" style="padding:0 8px;min-height:0" onClick="{{ r.inc }}" aria-label="Raise share">+</button></div></td>
+                  <td style="text-align:right"><strong>₹{{ r.school }}</strong></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)">
+            <strong>Causes</strong>
+            <span style="font-size:13px">What the money is raised for. Each stall picks one in its Stall tab.</span>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+              <sc-for list="{{ adminCauses }}" as="c" hint-placeholder-count="4">
+                <span class="tag tag-accent-2" style="display:inline-flex;align-items:center;gap:6px">{{ c.label }} · {{ c.uses }}<button onClick="{{ c.remove }}" aria-label="Remove cause" style="border:none;background:none;cursor:pointer;font:inherit;padding:0;color:inherit">×</button></span>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:var(--space-2)">
+              <input class="input" style="flex:1;min-width:0" placeholder="e.g. Smart classroom projector" value="{{ causeDraft }}" onChange="{{ setCauseDraft }}"></input>
+              <button class="btn btn-primary" onClick="{{ addCause }}" disabled="{{ noCauseDraft }}">Add</button>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);flex-wrap:wrap">
+            <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">Settle-ups</h3>
+            <span style="font-size:14px">Received ₹{{ settle.received }} of ₹{{ settle.owed }} · <strong>₹{{ settle.due }} pending</strong></span>
+          </div>
+          <span style="font-size:14px;line-height:1.5">Customers pay stall owners directly, so each stall passes the school's share on at the end of the day.</span>
+          <div class="field"><label>School UPI ID (owners pay here)</label><input class="input" value="{{ schoolUpi }}" onChange="{{ setSchoolUpi }}"></input></div>
+          <sc-for list="{{ settle.rows }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3);align-items:center;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:2px"><strong>{{ r.name }}</strong><span style="font-size:13px">{{ r.owner }} · owes ₹{{ r.owed }} ({{ r.pct }}%)</span></div>
+                <span class="{{ r.cls }}">{{ r.label }}</span>
+              </div>
+              <a href="{{ r.thank }}" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;align-self:flex-start">Send thank-you on WhatsApp</a>
+              <sc-for list="{{ r.history }}" as="h" hint-placeholder-count="0">
+                <span style="font-size:13px">✓ ₹{{ h.amount }} by {{ h.method }} at {{ h.time }}</span>
+              </sc-for>
+              <sc-if value="{{ r.hasDue }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                  <button class="btn btn-primary" onClick="{{ r.gotUpi }}">₹{{ r.due }} received · UPI</button>
+                  <button class="btn btn-secondary" onClick="{{ r.gotCash }}">Received · cash</button>
+                  <a class="btn btn-ghost" href="{{ r.remind }}" target="_blank" rel="noopener" style="text-decoration:none">Remind on WhatsApp</a>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4)">
+          <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">WhatsApp messages</h3>
+          <span style="font-size:14px;line-height:1.5">Edit the wording once here — every stall uses it. Words in {curly brackets} are filled in automatically.</span>
+          <sc-for list="{{ msgTemplates }}" as="t" hint-placeholder-count="4">
+            <div class="field">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2);flex-wrap:wrap"><label>{{ t.title }}</label><span style="font-size:12px">{{ t.who }}</span></div>
+              <textarea class="input" style="border-radius:var(--radius-md);min-height:84px;resize:vertical;font-size:14px" value="{{ t.value }}" onChange="{{ t.set }}"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);flex-wrap:wrap"><span style="font-size:12px">{{ t.vars }}</span><sc-if value="{{ t.edited }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" style="font-size:12px" onClick="{{ t.reset }}">Reset</button></sc-if></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4)">
+          <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">Lost &amp; found · announcements</h3>
+          <span style="font-size:14px">Shows on every customer's Stalls screen and on the token board.</span>
+          <div style="display:flex;gap:var(--space-2);flex-wrap:wrap"><sc-for list="{{ aNotice.kinds }}" as="k" hint-placeholder-count="3"><button class="{{ k.cls }}" onClick="{{ k.pick }}">{{ k.label }}</button></sc-for></div>
+          <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+            <input class="input" style="flex:1;min-width:200px" placeholder="e.g. Blue water bottle found near Sunny Snacks" value="{{ aNotice.text }}" onChange="{{ aNotice.setText }}"></input>
+            <button class="btn btn-primary" onClick="{{ aNotice.post }}" disabled="{{ aNotice.invalid }}">Post</button>
+          </div>
+          <sc-for list="{{ allNotices }}" as="n" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface);opacity:{{ n.opacity }}">
+              <span class="{{ n.cls }}">{{ n.kind }}</span>
+              <div style="flex:1;display:flex;flex-direction:column;min-width:160px"><span style="font-size:14px">{{ n.text }}</span><span style="font-size:12px">{{ n.time }} · {{ n.by }}{{ n.contact }}</span></div>
+              <button class="btn btn-ghost" style="font-size:13px" onClick="{{ n.toggle }}">{{ n.toggleLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:var(--space-4)">
+          <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">Stall logins</h3>
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-accent-2-100)">
+            <span style="font-size:14px">Invite code for new stalls</span><strong style="font-family:var(--font-heading);font-size:24px;letter-spacing:.06em">{{ inviteCode }}</strong>
+            <div style="flex:1"></div>
+            <button class="btn btn-secondary" onClick="{{ newInvite }}">New code</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+            <strong>Invite a stall owner</strong>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+              <input class="input" style="flex:1;min-width:140px" placeholder="Their name" value="{{ invite.name }}" onChange="{{ invite.setName }}"></input>
+              <input class="input" style="flex:1;min-width:160px" inputMode="tel" placeholder="WhatsApp number" value="{{ invite.phone }}" onChange="{{ invite.setPhone }}"></input>
+            </div>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+              <a class="btn btn-primary" href="{{ invite.wa }}" target="_blank" rel="noopener" onClick="{{ invite.sent }}" aria-disabled="{{ invite.invalid }}" style="text-decoration:none">Send invite on WhatsApp</a>
+              <button class="btn btn-ghost" onClick="{{ invite.copy }}">Copy message for a group</button>
+            </div>
+            <span style="font-size:12px">Includes the app link, steps and today's code. Edit the wording under WhatsApp messages.</span>
+            <sc-if value="{{ invite.hasList }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ invite.list }}" as="x" hint-placeholder-count="1">
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);font-size:13px"><span>{{ x.name }} · {{ x.phone }} · {{ x.time }}</span><strong>{{ x.joined }}</strong></div>
+              </sc-for>
+            </sc-if>
+          </div>
+          <sc-for list="{{ access }}" as="a" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface)">
+              <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:160px"><strong>{{ a.name }}</strong><span style="font-size:13px">{{ a.owner }} · {{ a.phone }}</span></div>
+              <sc-if value="{{ a.wasReset }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent-2">PIN reset to 0000</span></sc-if>
+              <button class="btn btn-ghost" onClick="{{ a.reset }}">Reset PIN</button>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ showIdeas }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <h3 style="font-family:var(--font-heading);font-weight:400;font-size:26px;margin:0">Still to explore</h3>
+          <div style="display:flex;flex-direction:column;gap:var(--space-3);font-size:15px;line-height:1.5">
+            <div><strong>Pickup time.</strong> Order from the classroom, pick a slot ("after assembly").</div>
+            <div><strong>No payment gateway, no fees.</strong> Money goes straight from the customer's UPI app to the owner's UPI ID. The app only keeps the books; the owner ticks "Payment received" after checking their UPI app.</div>
+
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- TOKEN BOARD -->
+  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+    <div style="display:flex;align-items:center;gap:var(--space-2)"><span class="tag tag-accent">Token board</span><span style="font-size:14px">A TV or laptop by the stalls — updates live</span></div>
+    <div style="background:var(--color-accent-2-800);color:var(--color-bg);border-radius:var(--radius-lg);padding:var(--space-8);display:flex;flex-direction:column;gap:var(--space-6);box-shadow:var(--shadow-lg)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-4);flex-wrap:wrap">
+        <h2 style="font-family:var(--font-heading);font-weight:400;font-size:40px;margin:0">Ready for pickup</h2>
+        <div style="display:flex;align-items:center;gap:var(--space-4)"><span style="font-size:16px;max-width:200px">Scan to see every stall &amp; order</span><div role="img" aria-label="Fair QR code" style="width:120px;height:120px;border-radius:var(--radius-md);background-color:#fff;background-image:url({{ fairQr }});background-size:108px 108px;background-repeat:no-repeat;background-position:center"></div></div>
+      </div>
+      <sc-if value="{{ hasNotices }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+          <sc-for list="{{ openNotices }}" as="n" hint-placeholder-count="2">
+            <div style="display:flex;gap:var(--space-2);align-items:center;padding:var(--space-2) var(--space-4);border-radius:999px;background:var(--color-accent-2-700);font-size:17px"><strong>{{ n.kind }}:</strong><span>{{ n.text }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-6)">
+        <sc-for list="{{ board }}" as="b" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:var(--space-3);background:var(--color-accent-2-700);border-radius:var(--radius-lg);padding:var(--space-6)">
+            <strong style="font-size:20px">{{ b.name }}</strong>
+            <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);min-height:64px">
+              <sc-for list="{{ b.ready }}" as="t" hint-placeholder-count="1">
+                <span style="font-family:var(--font-heading);font-size:36px;line-height:1;background:var(--color-bg);color:var(--color-accent-2-900);border-radius:999px;padding:var(--space-3) var(--space-4)">{{ t.token }}</span>
+              </sc-for>
+              <sc-if value="{{ b.noneReady }}" hint-placeholder-val="{{ false }}"><span style="font-size:16px;align-self:center">Nothing ready yet</span></sc-if>
+            </div>
+            <span style="font-size:15px">{{ b.prepLabel }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;paymentCheck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;owner&quot;,&quot;customer&quot;],&quot;default&quot;:&quot;owner&quot;,&quot;tsType&quot;:&quot;'owner' | 'customer'&quot;,&quot;section&quot;:&quot;Flow&quot;},&quot;showIdeas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+const DEFAULT_TEMPLATES = { invite: 'Hi {name}! 👋 You\'re invited to run a stall at the school fair.\n1. Open {link}\n2. Tap "Stall login" → "Join with invite code"\n3. Enter code {code}\nThen add your menu, photos and UPI ID. See you there!',
+      receipt: 'Stall Day receipt 🧾\n{stall} · Token {token}\n{items}\nTotal ₹{total} ({paidBy})\n₹{schoolShare} goes to {cause}. Thank you!',
+      ready: 'Hi {name}! Your order {token} at {stall} is ready — please collect it. 😊',
+      reminder: 'Hi {owner}, thank you for running {stall}! The school\'s share is ₹{due}. Please pay to {schoolUpi} when you can. 🙏',
+      thankyou: 'Thank you {owner}! {stall} raised ₹{raised} for {cause} today across {orders} orders. You made the fair special. — Greenfield PTA' };
+const APP_URL = 'https://stallday.app/greenfield';
+const makeQr = text => { if (!window.qrcode) return ''; const q = window.qrcode(0, 'M'); q.addData(text); q.make(); return 'data:image/svg+xml,' + encodeURIComponent(q.createSvgTag({ cellSize: 8, margin: 2 })); };
+class Component extends DCLogic {
+  componentDidMount() { const t = () => window.qrcode ? this.forceUpdate() : (this.qt = setTimeout(t, 200)); t(); }
+  state = {
+    cScreen: 'scan', userName: '', userPhone: '', stallId: 's1', cart: {}, sizeSel: {}, payStep: null, payApp: '', lastOrderId: null,
+    schoolUpi: 'pta.greenfield@oksbi', settlements: [{ stallId: 's2', amount: 90, method: 'UPI', time: '10:30' }],
+    donation: 0, donateAmt: 50, donations: [{ amount: 100, name: 'Mrs. Iyer', time: '10:10' }], oRole: 'owner', helperName: '', comboDraft: null, helperDraft: { name: '', phone: '', pin: '' }, cNoticeTitle: '', avoid: [], templates: DEFAULT_TEMPLATES, causes: ['Library books', 'Sports day kit', 'School garden', 'School fund'], causeDraft: '', inviteTo: { name: '', phone: '' }, invitesSent: [],
+    notices: [{ id: 'n1', kind: 'Found', text: 'Blue steel water bottle with name sticker "Aarav" — at the admin desk', by: 'Admin', time: '10:25', open: true },
+      { id: 'n2', kind: 'Notice', text: 'Magic show in the main hall at 12 noon', by: 'Admin', time: '10:00', open: true }],
+    aNotice: { kind: 'Found', text: '' }, cReport: { open: false, kind: 'Lost', text: '' },
+    oAuth: false, oAuthMode: 'login', login: { phone: '', pin: '', err: '' }, join: { code: '', stall: '', owner: '', phone: '', pin: '', err: '' },
+    adminAuth: false, adminLogin: { email: 'pta@greenfield.school', pw: '', err: '' }, inviteCode: 'FAIR24', resetIds: [],
+    oScreen: 'queue', oTab: 'pending', oOrderId: null, ownerStallId: 's1', cashCart: {}, cNotice: null, oNotice: null, oNoticeTitle: '',
+    stalls: [
+      { id: 's1', phone: '98450 11111', pin: '1111', paused: false, pauseMsg: 'Back in 10 min',
+        combos: [{ id: 'k1', name: 'Snack combo', parts: ['a1', 'a4'], price: 55 }], helpers: [{ name: 'Ishaan', phone: '98450 44444', pin: '4444' }], prefix: 'A', kind: 'food', name: 'Sunny Snacks', category: 'Food', hours: '10 am – 1 pm', owner: 'Priya Rao', ownerRole: 'Parent · Class 4B', upi: 'priya.rao@okaxis', cause: 'Library books', cutPct: 10, menuLabel: 'Menu',
+        about: 'I bake on weekends and wanted the kids to have a healthier snack corner. Everything is made fresh this morning — no maida in the sandwiches!',
+        items: [
+          { id: 'a1', name: 'Veg grilled sandwich', note: 'Paneer, corn, mint chutney', price: 40, stock: 24, available: true, tags: ['veg', 'dairy', 'gluten'] },
+          { id: 'a2', name: 'Masala Maggi', note: 'Extra veggies', price: 50, stock: 15, available: true, tags: ['veg', 'gluten', 'spicy'] },
+          { id: 'a3', name: 'Samosa (2 pcs)', note: 'With tamarind chutney', price: 30, stock: 4, available: true, tags: ['vegan', 'gluten'] },
+          { id: 'a4', name: 'Fresh lime soda', note: 'Sweet or salted', price: 20, stock: 30, available: true, tags: ['vegan', 'jain'] },
+          { id: 'a5', name: 'Chocolate brownie', note: 'Home-baked', price: 30, stock: 12, available: true, tags: ['egg', 'nuts', 'dairy', 'gluten'] },
+          { id: 'a6', name: 'Cold coffee', note: 'Ask for less sugar', price: 45, stock: 0, available: true, tags: ['veg', 'dairy'] }
+        ] },
+      { id: 's2', phone: '98450 22222', pin: '2222', prefix: 'B', kind: 'goods', name: 'Thread & Thimble', category: 'Clothes', hours: 'All day', owner: 'Anita Menon', ownerRole: 'Parent · Class 7A', upi: 'anita.m@ybl', cause: 'Sports day kit', cutPct: 15, menuLabel: 'On the rack',
+        about: 'Hand-block printed kurtas and kids tees from a small Jaipur workshop. Try-ons at the stall; pay here or hold one for 15 minutes.',
+        items: [
+          { id: 'b1', name: 'Hand-block kurta', note: 'Indigo or rust', price: 650, stock: 9, available: true, sizes: ['S', 'M', 'L', 'XL'] },
+          { id: 'b2', name: 'Kids printed tee', note: 'Soft cotton', price: 299, stock: 18, available: true, sizes: ['4–6', '6–8', '8–10', '10–12'] },
+          { id: 'b3', name: 'Cotton tote bag', note: 'Fits a laptop', price: 180, stock: 3, available: true },
+          { id: 'b4', name: 'Scrunchie set of 3', note: 'Mixed prints', price: 120, stock: 14, available: true }
+        ] },
+      { id: 's3', phone: '98450 33333', pin: '3333', prefix: 'C', kind: 'goods', name: 'Little Makers', category: 'Crafts', hours: '11 am – 2 pm', owner: 'Grade 6 Eco Club', ownerRole: 'Run by students · Ms. Fernandes', upi: 'ecoclub.school@okicici', cause: 'School garden', cutPct: 100, menuLabel: 'Made by kids',
+        about: 'Everything here was made by Grade 6 students from recycled and natural materials. Every rupee goes to the new school garden.',
+        items: [
+          { id: 'c1', name: 'Painted clay diya', note: 'Set of 2', price: 50, stock: 20, available: true },
+          { id: 'c2', name: 'Bookmark set', note: 'Pressed flowers', price: 40, stock: 25, available: true },
+          { id: 'c3', name: 'Seed paper card', note: 'Plant it after reading', price: 60, stock: 7, available: true }
+        ] }
+    ],
+    orders: [
+      { id: 'o1', stallId: 's1', token: 'A-01', name: 'Meera K', phone: '98860 11223', items: [{ id: 'a1', name: 'Veg grilled sandwich', qty: 2, price: 40 }], total: 80, time: '10:05', status: 'done', app: 'GPay' },
+      { id: 'o2', stallId: 's1', token: 'A-02', name: 'Arjun S', phone: '99001 44556', items: [{ id: 'a2', name: 'Masala Maggi', qty: 1, price: 50 }, { id: 'a4', name: 'Fresh lime soda', qty: 1, price: 20 }], total: 70, time: '10:12', status: 'ready', app: 'PhonePe' },
+      { id: 'o3', stallId: 's1', token: 'A-03', name: 'Walk-up', phone: '', items: [{ id: 'a4', name: 'Fresh lime soda', qty: 2, price: 20 }], total: 40, time: '10:14', status: 'done', app: 'Cash' },
+      { id: 'o4', stallId: 's1', token: 'A-04', name: 'Kavya R', phone: '90080 77889', items: [{ id: 'a3', name: 'Samosa (2 pcs)', qty: 2, price: 30 }, { id: 'a5', name: 'Chocolate brownie', qty: 1, price: 30 }], total: 90, time: '10:18', status: 'pending', app: 'GPay' },
+      { id: 'o5', stallId: 's1', token: 'A-05', name: 'Dev P', phone: '97400 33221', items: [{ id: 'a1', name: 'Veg grilled sandwich', qty: 1, price: 40 }], total: 40, time: '10:21', status: 'pending', app: 'Paytm' },
+      { id: 'o6', stallId: 's2', token: 'B-01', name: 'Sana M', phone: '98450 66778', items: [{ id: 'b1', name: 'Hand-block kurta', size: 'M', qty: 1, price: 650 }], total: 650, time: '10:09', status: 'done', app: 'GPay' },
+      { id: 'o7', stallId: 's2', token: 'B-02', name: 'Nisha J', phone: '98440 90012', items: [{ id: 'b2', name: 'Kids printed tee', size: '6–8', qty: 2, price: 299 }], total: 598, time: '10:20', holdUntil: '10:35', status: 'hold', app: 'Pay at stall' },
+      { id: 'o8', stallId: 's3', token: 'C-01', name: 'Rohan T', phone: '96860 22114', items: [{ id: 'c3', name: 'Seed paper card', qty: 3, price: 60 }], total: 180, time: '10:15', status: 'ready', app: 'PhonePe' }
+    ]
+  };
+
+  readPhoto(e, cb) { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
+  saveDraft() {
+    const s = this.state, d = s.draft, sizes = d.sizes.split(',').map(x => x.trim()).filter(Boolean);
+    const fields = { name: d.name.trim(), note: d.note.trim(), price: Math.max(0, parseInt(d.price, 10) || 0), stock: Math.max(0, parseInt(d.stock, 10) || 0), photo: d.photo || undefined, sizes: sizes.length ? sizes : undefined, tags: d.tags || [] };
+    this.setState({ oScreen: 'menu', draft: null, draftId: null, stalls: s.stalls.map(x => x.id !== s.ownerStallId ? x : { ...x,
+      items: s.draftId ? x.items.map(i => i.id === s.draftId ? { ...i, ...fields } : i) : [...x.items, { id: 'n' + Date.now(), available: true, ...fields }] }) });
+  }
+  dig(p) { return (p || '').replace(/\D/g, ''); }
+  ownerLogin() {
+    const { login, stalls } = this.state, st = stalls.find(x => this.dig(x.phone) === this.dig(login.phone) && x.pin === login.pin);
+    if (!st) {
+      for (const x of stalls) { const hp = (x.helpers || []).find(hh => this.dig(hh.phone) === this.dig(login.phone) && hh.pin === login.pin);
+        if (hp) return this.setState({ oAuth: true, oRole: 'helper', helperName: hp.name, ownerStallId: x.id, oScreen: 'queue', oTab: 'pending', login: { phone: '', pin: '', err: '' } }); }
+      return this.setState({ login: { ...login, err: "Phone or PIN doesn't match." } });
+    }
+    this.setState({ oAuth: true, oRole: 'owner', ownerStallId: st.id, oScreen: 'queue', oTab: 'pending', login: { phone: '', pin: '', err: '' }, resetIds: this.state.resetIds.filter(i => i !== st.id) });
+  }
+  joinStall() {
+    const { join, stalls, inviteCode } = this.state;
+    const err = join.code.trim().toUpperCase() !== inviteCode ? 'That invite code is not right.' : !join.stall.trim() || !join.owner.trim() ? 'Add your stall name and your name.'
+      : this.dig(join.phone).length < 10 ? 'Enter a 10-digit phone number.' : !/^\d{4}$/.test(join.pin) ? 'PIN must be 4 digits.'
+      : stalls.some(x => this.dig(x.phone) === this.dig(join.phone)) ? 'This phone already has a stall — log in instead.' : '';
+    if (err) return this.setState({ join: { ...join, err } });
+    const id = 's' + Date.now(), prefix = String.fromCharCode(65 + stalls.length);
+    const st = { id, phone: join.phone, pin: join.pin, prefix, kind: 'food', name: join.stall.trim(), category: 'Food', hours: '', owner: join.owner.trim(), ownerRole: '', upi: '', cause: 'School fund', cutPct: 10, menuLabel: 'Menu', about: '', items: [] };
+    this.setState({ stalls: [...stalls, st], ownerStallId: id, oAuth: true, oRole: 'owner', oAuthMode: 'login', oScreen: 'setup', join: { code: '', stall: '', owner: '', phone: '', pin: '', err: '' } });
+  }
+  componentWillUnmount() { clearTimeout(this.tc); clearTimeout(this.to); clearTimeout(this.qt); }
+  notify(side, msg, title) {
+    const k = side === 'c' ? 'cNotice' : 'oNotice', t = side === 'c' ? 'tc' : 'to';
+    clearTimeout(this[t]); this.setState({ [k]: msg, ...(title ? { [side === 'c' ? 'cNoticeTitle' : 'oNoticeTitle']: title } : {}) });
+    this[t] = setTimeout(() => this.setState({ [k]: null }), 4500);
+  }
+  now(addMin = 0) { const d = new Date(Date.now() + addMin * 60000); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }
+  adjustStock(stallId, items, sign) {
+    return this.state.stalls.map(st => st.id !== stallId ? st : { ...st, items: st.items.map(it => {
+      const q = items.reduce((a, l) => a + (l.id === it.id ? l.qty : 0) + ((l.parts || []).includes(it.id) ? l.qty : 0), 0);
+      return q ? { ...it, stock: Math.max(0, it.stock + sign * q) } : it; }) });
+  }
+  setStatus(id, status, extra = {}) {
+    const o = this.state.orders.find(x => x.id === id);
+    const patch = { orders: this.state.orders.map(x => x.id === id ? { ...x, status, ...extra } : x) };
+    if (status === 'cancelled') patch.stalls = this.adjustStock(o.stallId, o.items, +1);
+    this.setState(patch);
+    if (status === 'ready' && o && o.phone && o.phone === this.state.userPhone) {
+      const st = this.state.stalls.find(s => s.id === o.stallId);
+      this.notify('c', `Token ${o.token} — collect at ${st.name}`, 'Your order is ready');
+    }
+  }
+  updateOwnerStall(k, v) { this.setState(s => ({ stalls: s.stalls.map(x => x.id === s.ownerStallId ? { ...x, [k]: v } : x) })); }
+  nextTokenFor(stall) { const n = this.state.orders.filter(o => o.stallId === stall.id).length + 1; return `${stall.prefix}-${String(n).padStart(2, '0')}`; }
+  linesFrom(stall, cart) {
+    return Object.keys(cart).filter(k => cart[k] > 0).map(k => {
+      if (k.startsWith('combo:')) { const c = (stall.combos || []).find(x => x.id === k.slice(6)); return c && { id: k, name: c.name, qty: cart[k], price: c.price, parts: c.parts }; }
+      const [id, size] = k.split('|'); const it = stall.items.find(i => i.id === id);
+      return it && { id, name: it.name, size: size || undefined, qty: cart[k], price: it.price }; }).filter(Boolean);
+  }
+  schoolShare(o) { const st = this.state.stalls.find(x => x.id === o.stallId); return Math.round((o.total - (o.donation || 0)) * (st ? st.cutPct : 0) / 100) + (o.donation || 0); }
+  csv(name, rows) {
+    const esc = v => { const t = String(v == null ? '' : v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const blob = new Blob(['\ufeff' + rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  exportOrders() {
+    const s = this.state, by = Object.fromEntries(s.stalls.map(x => [x.id, x]));
+    this.csv('stall-day-orders.csv', [['Token', 'Stall', 'Time', 'Customer', 'Phone', 'Items', 'Paid by', 'Status', 'Total (Rs)', 'Donation (Rs)', 'School share (Rs)'],
+      ...s.orders.map(o => [o.token, by[o.stallId].name, o.time, o.name, o.phone, o.items.map(i => i.qty + ' x ' + i.name + (i.size ? ' (' + i.size + ')' : '')).join('; '), o.app, o.status, o.total, o.donation || 0, ['pending', 'ready', 'done'].includes(o.status) ? this.schoolShare(o) : 0]),
+      ...s.donations.map(d => ['DONATION', 'School fund (direct)', d.time, d.name, '', '', 'UPI', 'done', d.amount, d.amount, d.amount])]);
+  }
+  exportStalls() {
+    const s = this.state, paid = o => ['pending', 'ready', 'done'].includes(o.status);
+    this.csv('stall-day-summary.csv', [['Stall', 'Owner', 'Phone', 'UPI ID', 'Orders', 'UPI (Rs)', 'Cash (Rs)', 'Total (Rs)', 'School %', 'School share (Rs)', 'Settled (Rs)'],
+      ...s.stalls.map(st => { const os = s.orders.filter(o => o.stallId === st.id && paid(o)), tot = os.reduce((a, o) => a + o.total, 0), cash = os.filter(o => o.app === 'Cash').reduce((a, o) => a + o.total, 0);
+        return [st.name, st.owner, st.phone, st.upi, os.length, tot - cash, cash, tot, st.cutPct, os.reduce((a, o) => a + this.schoolShare(o), 0), s.settlements.filter(x => x.stallId === st.id).reduce((a, x) => a + x.amount, 0)]; })]);
+  }
+  printList() {
+    const st = this.state.stalls.find(x => x.id === this.state.ownerStallId), css = new URL('_ds/organic-398c7524-8951-44f7-9ce9-123a34649051/styles.css', location.href).href;
+    const row = (n, note, p) => '<div style="display:flex;justify-content:space-between;gap:24px;padding:14px 0;font-size:22px"><div><strong>' + n + '</strong>' + (note ? '<div style="font-size:15px">' + note + '</div>' : '') + '</div><strong style="font-size:26px">₹' + p + '</strong></div>';
+    const html = '<!doctype html><html><head><meta charset="utf-8"><title>' + st.name + ' price list</title><link rel="stylesheet" href="' + css + '"></head><body style="margin:0;background:var(--color-bg);font-family:var(--font-body);color:var(--color-text)"><div style="max-width:720px;padding:48px">'
+      + '<h1 style="font-family:var(--font-heading);font-weight:400;font-size:56px;margin:0 0 8px">' + st.name + '</h1><div style="font-size:18px;margin-bottom:24px">' + (st.hours || '') + ' · ' + (st.cutPct >= 100 ? 'Every rupee' : st.cutPct + '% of sales') + ' goes to ' + st.cause + '</div>'
+      + ((st.combos || []).length ? '<h2 style="font-family:var(--font-heading);font-weight:400;font-size:28px;margin:24px 0 0">Combos</h2>' + st.combos.map(c => row(c.name, c.parts.map(id => (st.items.find(i => i.id === id) || {}).name).join(' + '), c.price)).join('') : '')
+      + '<h2 style="font-family:var(--font-heading);font-weight:400;font-size:28px;margin:24px 0 0">' + st.menuLabel + '</h2>' + st.items.filter(i => i.available).map(i => row(i.name, [i.note, (i.tags || []).map(t => ({ veg: 'Veg', vegan: 'Vegan', jain: 'Jain', egg: 'Contains egg', nuts: 'Contains nuts', dairy: 'Contains dairy', gluten: 'Contains gluten', spicy: 'Spicy' })[t]).filter(Boolean).join(' · ')].filter(Boolean).join(' — '), i.price)).join('')
+      + '<div style="display:flex;gap:24px;align-items:center;margin-top:40px;padding:24px;border-radius:28px;background:var(--color-surface)"><img src="' + makeQr(APP_URL + '/s/' + st.id) + '" alt="QR" style="width:180px;height:180px;background:#fff;border-radius:16px;padding:8px"><div style="font-size:22px"><strong>Scan to order &amp; pay by UPI</strong><div style="font-size:16px;margin-top:6px">We call your token when it is ready.</div></div></div>'
+      + '</div><script>setTimeout(function(){print()},600)<\/script></body></html>';
+    const w = window.open('', '_blank'); if (w) { w.document.write(html); w.document.close(); }
+  }
+  placeOrder(mode) {
+    const s = this.state, stall = s.stalls.find(x => x.id === s.stallId);
+    const items = this.linesFrom(stall, s.cart), total = items.reduce((a, i) => a + i.qty * i.price, 0);
+    const ownerVerify = (this.props.paymentCheck ?? 'owner') === 'owner', donation = s.donation || 0;
+    if (stall.paused || !items.length) return;
+    const status = mode === 'hold' ? 'hold' : ownerVerify ? 'verify' : 'pending';
+    const order = { id: 'o' + Date.now(), stallId: stall.id, token: this.nextTokenFor(stall), name: s.userName || 'Guest', phone: s.userPhone || '',
+      items, total: total + donation, donation, time: this.now(), status, app: mode === 'hold' ? 'Pay at stall' : s.payApp, isNew: true, ...(mode === 'hold' ? { holdUntil: this.now(15) } : {}) };
+    this.setState({ orders: [...s.orders, order], stalls: this.adjustStock(stall.id, items, -1), cart: {}, donation: 0, payStep: null, cScreen: 'success', lastOrderId: order.id });
+    if (stall.id === s.ownerStallId) this.notify('o', `${order.token} · ${order.name} · ₹${order.total}`, mode === 'hold' ? 'New hold request' : 'New order — KOT');
+  }
+  recordCash() {
+    const s = this.state, stall = s.stalls.find(x => x.id === s.ownerStallId);
+    const items = this.linesFrom(stall, s.cashCart), total = items.reduce((a, i) => a + i.qty * i.price, 0);
+    if (!total) return;
+    const order = { id: 'o' + Date.now(), stallId: stall.id, token: this.nextTokenFor(stall), name: 'Walk-up', phone: '', items, total, time: this.now(), status: 'done', app: 'Cash' };
+    this.setState({ orders: [...s.orders, order], stalls: this.adjustStock(stall.id, items, -1), cashCart: {} });
+    this.notify('o', `${order.token} · ₹${total} added to today's sales`, 'Cash sale recorded');
+  }
+
+  renderVals() {
+    const s = this.state, set = p => this.setState(p);
+    const byId = Object.fromEntries(s.stalls.map(x => [x.id, x]));
+    const stall = byId[s.stallId], ownerStall = byId[s.ownerStallId];
+    const paidStatuses = ['pending', 'ready', 'done'];
+    const isPaid = o => paidStatuses.includes(o.status);
+    const label = l => l.name + (l.size ? ` (${l.size})` : '');
+    const statusInfo = o => {
+      const food = byId[o.stallId].kind === 'food';
+      return ({ verify: ['Check payment', 'tag tag-accent'], hold: [`On hold till ${o.holdUntil}`, 'tag tag-outline'], pending: [food ? 'Preparing' : 'Packing', 'tag tag-accent'],
+        ready: [food ? 'Ready for pickup' : 'Ready to collect', 'tag tag-accent-2'], done: ['Collected', 'tag tag-neutral'], cancelled: ['Released', 'tag tag-neutral'] })[o.status];
+    };
+    const digits = p => (p || '').replace(/\D/g, '');
+    const fill = (k, v) => (s.templates[k] || '').replace(/\{(\w+)\}/g, (m, key) => v[key] != null ? v[key] : m);
+    const receipt = o => { const st = byId[o.stallId];
+      return fill('receipt', { name: o.name, stall: st.name, token: o.token, items: o.items.map(i => `${i.qty} × ${label(i)} — ₹${i.qty * i.price}`).join('\n') + (o.donation ? `\nDonation — ₹${o.donation}` : ''), total: o.total, paidBy: o.app, schoolShare: this.schoolShare(o), cause: st.cause }); };
+    const decorate = o => { const [statusLabel, tagClass] = statusInfo(o);
+      return { ...o, summary: o.items.map(i => `${i.qty}× ${label(i)}`).join(', '), statusLabel, tagClass, stallName: byId[o.stallId].name,
+        items: o.items.map(i => ({ ...i, label: label(i), sum: i.qty * i.price })), hasPhone: !!o.phone,
+        waCustomer: `https://wa.me/91${digits(o.phone)}?text=${encodeURIComponent(receipt(o))}`,
+        waSelf: `https://wa.me/?text=${encodeURIComponent(receipt(o))}`,
+        waReady: `https://wa.me/91${digits(o.phone)}?text=${encodeURIComponent(fill('ready', { name: o.name.split(' ')[0], token: o.token, stall: byId[o.stallId].name }))}` }; };
+
+    const comboParts = Object.fromEntries((stall.combos || []).map(c => ['combo:' + c.id, c.parts]));
+    const inCart = (cart, id) => Object.keys(cart).reduce((a, k) => a + (k.split('|')[0] === id ? cart[k] : 0) + ((comboParts[k] || []).includes(id) ? cart[k] : 0), 0);
+    const combos = (stall.combos || []).map(c => {
+      const key = 'combo:' + c.id, qty = s.cart[key] || 0, parts = c.parts.map(id => stall.items.find(i => i.id === id)).filter(Boolean);
+      const full = parts.reduce((a, p) => a + p.price, 0), ok = !stall.paused && parts.length === c.parts.length && parts.every(p => p.available && p.stock - inCart(s.cart, p.id) > 0);
+      return { name: c.name, partsText: parts.map(p => p.name).join(' + '), priceStr: '₹' + c.price, saveText: full > c.price ? `Save ₹${full - c.price}` : '',
+        qty, hasQty: qty > 0, canAddFirst: ok && qty === 0, atMax: !ok,
+        add: () => { if (ok) set({ cart: { ...s.cart, [key]: qty + 1 } }); },
+        sub: () => { const cc = { ...s.cart }; if (qty <= 1) delete cc[key]; else cc[key] = qty - 1; set({ cart: cc }); } };
+    });
+    const TAGS = { veg: ['Veg', 'tag tag-accent-2'], vegan: ['Vegan', 'tag tag-accent-2'], jain: ['Jain', 'tag tag-accent-2'], egg: ['Contains egg', 'tag tag-accent'],
+      nuts: ['Contains nuts', 'tag tag-accent'], dairy: ['Contains dairy', 'tag tag-accent'], gluten: ['Contains gluten', 'tag tag-accent'], spicy: ['Spicy', 'tag tag-outline'] };
+    const ALLERGENS = ['nuts', 'dairy', 'gluten', 'egg'], avoid = s.avoid || [];
+    const menu = stall.items.map(it => {
+      const size = it.sizes ? (s.sizeSel[it.id] || it.sizes[0]) : null, key = size ? `${it.id}|${size}` : it.id;
+      const qty = s.cart[key] || 0, used = inCart(s.cart, it.id), soldOut = !it.available || it.stock <= 0;
+      return { ...it, qty, hasQty: qty > 0, canAddFirst: !soldOut && !stall.paused && qty === 0 && used < it.stock, soldOut, atMax: used >= it.stock, opacity: soldOut ? 0.55 : 1,
+        initial: it.name[0], hasPhoto: !!it.photo, noPhoto: !it.photo, priceStr: '₹' + it.price, stockNote: !soldOut && it.stock <= 5 ? `Only ${it.stock} left` : '',
+        hasSizes: !!it.sizes && !soldOut,
+        tagList: (it.tags || []).filter(t => TAGS[t]).map(t => ({ label: TAGS[t][0], cls: TAGS[t][1] })), hasTags: !!(it.tags && it.tags.length),
+        hidden: (it.tags || []).some(t => avoid.includes(t)),
+        sizeOpts: (it.sizes || []).map(z => ({ label: z, cls: z === size ? 'tag tag-accent' : 'tag tag-outline', pick: () => set({ sizeSel: { ...s.sizeSel, [it.id]: z } }) })),
+        add: () => { if (used < it.stock) set({ cart: { ...s.cart, [key]: qty + 1 } }); },
+        sub: () => { const c = { ...s.cart }; if (qty <= 1) delete c[key]; else c[key] = qty - 1; set({ cart: c }); } };
+    });
+    const cartLines = this.linesFrom(stall, s.cart).map(l => ({ ...l, label: label(l), sum: l.qty * l.price }));
+    const itemsTotal = cartLines.reduce((a, l) => a + l.sum, 0), cartTotal = itemsTotal + (s.donation || 0), cartCount = cartLines.reduce((a, l) => a + l.qty, 0);
+    const nextToken = this.nextTokenFor(stall);
+    const upiLink = `upi://pay?pa=${stall.upi}&pn=${encodeURIComponent(stall.name)}&am=${cartTotal}&cu=INR&tn=${encodeURIComponent('Token ' + nextToken)}`;
+
+    const myRaw = s.orders.filter(o => s.userPhone && o.phone === s.userPhone).slice().reverse();
+    const myActive = myRaw.filter(o => !['done', 'cancelled'].includes(o.status)).length;
+    const last = s.orders.find(o => o.id === s.lastOrderId);
+    let lastOrder = null;
+    if (last) {
+      const ahead = s.orders.filter(o => o.stallId === last.stallId && ['pending', 'verify'].includes(o.status) && o.id !== last.id).length;
+      const isHold = last.status === 'hold';
+      lastOrder = { ...decorate(last), headline: isHold ? 'Held for you!' : 'Order placed!',
+        payLabel: isHold ? 'Pay at the stall' : last.status === 'verify' ? 'Awaiting stall confirmation' : 'Payment sent',
+        aheadText: isHold ? `Kept aside until ${last.holdUntil}` : ahead ? `${ahead} order${ahead > 1 ? 's' : ''} ahead of you` : "You're next in line" };
+    }
+
+    const own = s.orders.filter(o => o.stallId === s.ownerStallId);
+    const byTab = { pending: own.filter(o => ['pending', 'verify', 'hold'].includes(o.status)), ready: own.filter(o => o.status === 'ready'), done: own.filter(o => ['done', 'cancelled'].includes(o.status)).slice().reverse() };
+    const queue = byTab[s.oTab].map(o => ({ ...decorate(o), shadow: o.isNew && !['done', 'cancelled'].includes(o.status) ? '0 0 0 3px var(--color-accent)' : 'none',
+      open: () => set({ oScreen: 'detail', oOrderId: o.id, orders: s.orders.map(x => x.id === o.id ? { ...x, isNew: false } : x) }) }));
+    const sel = s.orders.find(o => o.id === s.oOrderId && o.stallId === s.ownerStallId);
+    const oOrder = sel ? { ...decorate(sel), firstName: sel.name.split(' ')[0], isVerify: sel.status === 'verify', isHold: sel.status === 'hold', isPending: sel.status === 'pending', isReady: sel.status === 'ready',
+      holdText: sel.holdUntil && sel.status === 'hold' ? ` · held till ${sel.holdUntil}` : '',
+      confirmPay: () => this.setStatus(sel.id, 'pending'),
+      holdPaid: () => { this.setStatus(sel.id, 'done', { app: 'Cash' }); set({ oScreen: 'queue', oTab: 'pending' }); },
+      release: () => { this.setStatus(sel.id, 'cancelled'); set({ oScreen: 'queue', oTab: 'pending' }); },
+      ready: () => { this.setStatus(sel.id, 'ready'); set({ oScreen: 'queue', oTab: 'pending' }); },
+      done: () => { this.setStatus(sel.id, 'done'); set({ oScreen: 'queue', oTab: 'ready' }); } } : null;
+
+    const soldBy = {};
+    own.filter(isPaid).forEach(o => o.items.forEach(i => { (i.parts || [i.id]).forEach(pid => { soldBy[pid] = (soldBy[pid] || 0) + i.qty; }); }));
+    const patchItem = (id, fn) => set({ stalls: s.stalls.map(x => x.id === ownerStall.id ? { ...x, items: x.items.map(i => i.id === id ? fn(i) : i) } : x) });
+    const ownerMenu = ownerStall.items.map(it => ({ ...it, priceStr: '₹' + it.price, soldCount: soldBy[it.id] || 0, hasPhoto: !!it.photo, noPhoto: !it.photo,
+      edit: () => set({ oScreen: 'item', draftId: it.id, draft: { name: it.name, note: it.note || '', price: String(it.price), stock: String(it.stock), sizes: (it.sizes || []).join(', '), photo: it.photo || '', tags: it.tags || [] } }),
+      stockColor: it.stock <= 5 ? 'var(--color-accent-700)' : 'var(--color-text)',
+      inc: () => patchItem(it.id, i => ({ ...i, stock: i.stock + 1 })), dec: () => patchItem(it.id, i => ({ ...i, stock: Math.max(0, i.stock - 1) })),
+      toggleLabel: it.stock <= 0 ? 'Sold out' : it.available ? 'On sale' : 'Hidden', toggleClass: it.available && it.stock > 0 ? 'btn btn-secondary' : 'btn btn-ghost',
+      toggle: () => patchItem(it.id, i => ({ ...i, available: !i.available })) }));
+    const cashMenu = ownerStall.items.map(it => { const qty = s.cashCart[it.id] || 0, out = it.stock - qty <= 0;
+      return { ...it, qty, hasQty: qty > 0, priceStr: '₹' + it.price, stock: it.stock - qty, disabled: out, opacity: out && !qty ? 0.5 : 1,
+        bg: qty ? 'var(--color-accent-100)' : 'var(--color-surface)', add: () => { if (!out) set({ cashCart: { ...s.cashCart, [it.id]: qty + 1 } }); } }; });
+    const cashTotal = ownerStall.items.reduce((a, it) => a + (s.cashCart[it.id] || 0) * it.price, 0);
+
+    const sum = os => os.reduce((a, o) => a + o.total, 0), schoolOf = os => os.reduce((a, o) => a + this.schoolShare(o), 0);
+    const paidOwn = own.filter(isPaid), ownTotal = sum(paidOwn), ownSchool = schoolOf(paidOwn);
+    const ownerSales = { total: ownTotal, count: paidOwn.length, cash: sum(paidOwn.filter(o => o.app === 'Cash')), upi: sum(paidOwn.filter(o => o.app !== 'Cash')),
+      school: ownSchool, keep: ownTotal - ownSchool,
+      top: ownerStall.items.map(i => ({ name: i.name, qty: soldBy[i.id] || 0 })).filter(t => t.qty).sort((a, b) => b.qty - a.qty).slice(0, 3) };
+
+    const co = ownerStall.closeout || { upiActual: '', cashActual: '', note: '', closed: false };
+    const setCo = patch => this.setState(p => ({ stalls: p.stalls.map(x => x.id === p.ownerStallId ? { ...x, closeout: { ...(x.closeout || { upiActual: '', cashActual: '', note: '', closed: false }), ...patch } } : x) }));
+    const diffOf = (actual, rec) => { if (actual === '' || actual == null) return ['', 'var(--color-text)'];
+      const dd = (parseInt(actual, 10) || 0) - rec;
+      return dd === 0 ? ['Matches ✓', 'var(--color-accent-2-800)'] : dd < 0 ? [`₹${-dd} short`, 'var(--color-accent-800)'] : [`₹${dd} extra`, 'var(--color-accent-800)']; };
+    const [upiDiff, upiColor] = diffOf(co.upiActual, ownerSales.upi), [cashDiff, cashColor] = diffOf(co.cashActual, ownerSales.cash);
+    const unconf = own.filter(o => o.status === 'verify').length, holds = own.filter(o => o.status === 'hold').length;
+    const close = { ...co, open: !co.closed, upiDiff, upiColor, cashDiff, cashColor, cantClose: co.upiActual === '' || co.cashActual === '',
+      hasUnconfirmed: !co.closed && (unconf + holds) > 0,
+      unconfirmedText: [unconf ? `${unconf} UPI payment${unconf > 1 ? 's' : ''} not yet confirmed` : '', holds ? `${holds} hold${holds > 1 ? 's' : ''} still open` : ''].filter(Boolean).join(' · ') + ' — sort these first.',
+      setUpi: e => setCo({ upiActual: e.target.value.replace(/\D/g, '') }), setCash: e => setCo({ cashActual: e.target.value.replace(/\D/g, '') }),
+      setNote: e => setCo({ note: e.target.value }),
+      closeDay: () => setCo({ closed: true, closedAt: this.now() }), reopen: () => setCo({ closed: false }) };
+    const closeInfo = st => { const c = st.closeout; if (!c || !c.closed) return ['Day not closed', 'tag tag-outline'];
+      const os = s.orders.filter(o => o.stallId === st.id && isPaid(o));
+      const dd = (parseInt(c.upiActual, 10) || 0) + (parseInt(c.cashActual, 10) || 0) - sum(os);
+      return dd === 0 ? ['Closed · matches', 'tag tag-accent-2'] : [`Closed · ₹${Math.abs(dd)} ${dd < 0 ? 'short' : 'extra'}`, 'tag tag-accent']; };
+    const settleRows = s.stalls.map(st => {
+      const stOrders = s.orders.filter(o => o.stallId === st.id && isPaid(o)), owed = schoolOf(stOrders);
+      const history = s.settlements.filter(x => x.stallId === st.id), received = history.reduce((a, x) => a + x.amount, 0), due = Math.max(0, owed - received);
+      const record = method => this.setState(p => ({ settlements: [...p.settlements, { stallId: st.id, amount: due, method, time: this.now() }] }));
+      return { id: st.id, name: st.name, owner: st.owner, pct: st.cutPct, owed, received, due, hasDue: due > 0, history,
+        label: due === 0 ? (owed ? 'Settled' : 'Nothing due') : received ? `₹${due} pending` : 'Not settled', cls: due === 0 ? 'tag tag-accent-2' : 'tag tag-accent',
+        gotUpi: () => record('UPI'),
+        thank: `https://wa.me/91${digits(st.phone)}?text=${encodeURIComponent(fill('thankyou', { owner: st.owner, stall: st.name, raised: owed, cause: st.cause, orders: stOrders.length }))}`,
+        remind: `https://wa.me/91${digits(st.phone)}?text=${encodeURIComponent(fill('reminder', { owner: st.owner, stall: st.name, due, schoolUpi: s.schoolUpi, cause: st.cause }))}` };
+    });
+    const settle = { rows: settleRows, owed: settleRows.reduce((a, r) => a + r.owed, 0), received: settleRows.reduce((a, r) => a + r.received, 0), due: settleRows.reduce((a, r) => a + r.due, 0) };
+    const myS = settleRows.find(r => r.id === ownerStall.id);
+    const ownerSettle = { ...myS, isSettled: myS.owed > 0 && myS.due === 0,
+      upiLink: `upi://pay?pa=${s.schoolUpi}&pn=${encodeURIComponent('School fund')}&am=${myS.due}&cu=INR&tn=${encodeURIComponent(ownerStall.name + ' school share')}` };
+    const setCut = (id, d) => set({ stalls: s.stalls.map(x => x.id === id ? { ...x, cutPct: Math.min(100, Math.max(0, x.cutPct + d)) } : x) });
+    const allPaid = s.orders.filter(isPaid);
+    const rows = s.stalls.map(st => { const os = allPaid.filter(o => o.stallId === st.id), total = sum(os);
+      const [closeLabel, closeCls] = closeInfo(st);
+      return { name: st.name, cause: st.cause, category: st.category, count: os.length, total, closeLabel, closeCls, pct: st.cutPct, school: schoolOf(os), inc: () => setCut(st.id, 5), dec: () => setCut(st.id, -5) }; });
+
+    const board = s.stalls.map(st => { const os = s.orders.filter(o => o.stallId === st.id);
+      const ready = os.filter(o => o.status === 'ready').map(o => ({ token: o.token })), prep = os.filter(o => ['pending', 'verify'].includes(o.status)).map(o => o.token);
+      return { name: st.name, ready, noneReady: ready.length === 0, prepLabel: prep.length ? `${st.kind === 'food' ? 'Preparing' : 'Packing'}: ${prep.join(', ')}` : 'No queue' }; });
+
+    const tab = on => on ? 'btn btn-primary' : 'btn btn-ghost';
+    const oNav = n => (s.oScreen === n || (n === 'queue' && s.oScreen === 'detail') || (n === 'menu' && s.oScreen === 'item')) ? 'btn btn-primary' : 'btn btn-ghost';
+    const d = s.draft, setD = k => e => set({ draft: { ...s.draft, [k]: e.target.value } });
+    const draft = d ? { ...d, title: s.draftId ? 'Edit item' : 'New item', hasPhoto: !!d.photo, noPhoto: !d.photo, photoLabel: d.photo ? 'Change photo' : 'Add a photo',
+      isExisting: !!s.draftId,
+      tagChips: Object.keys(TAGS).map(t => ({ label: TAGS[t][0], cls: (d.tags || []).includes(t) ? TAGS[t][1] : 'tag tag-outline', pick: () => set({ draft: { ...d, tags: (d.tags || []).includes(t) ? d.tags.filter(x => x !== t) : [...(d.tags || []), t] } }) })),
+      showSizes: ownerStall.kind === 'goods', invalid: !d.name.trim() || !(parseInt(d.price, 10) > 0) } : {};
+    const cats = ['Food', 'Clothes', 'Crafts', 'Other'];
+    const apps = ['Google Pay', 'PhonePe', 'Paytm', 'Other UPI app'];
+
+    return {
+      cNotice: s.cNotice, oNotice: s.oNotice, oNoticeTitle: s.oNoticeTitle, userName: s.userName, userPhone: s.userPhone,
+      entryStall: byId.s1, stall: { ...stall, ownerInitial: stall.owner[0], hasPhoto: !!stall.photo, cutLine: stall.cutPct >= 100 ? `Every rupee goes to ${stall.cause}` : `${stall.cutPct}% of sales goes to ${stall.cause}` },
+      ownerStall, menu: menu.filter(m => !m.hidden), cartLines,
+      showAvoid: stall.kind === 'food', hiddenNote: (() => { const n = menu.filter(m => m.hidden).length; return n ? `${n} item${n > 1 ? 's' : ''} hidden` : ''; })(),
+      avoidOpts: ALLERGENS.map(a => ({ label: a[0].toUpperCase() + a.slice(1), cls: avoid.includes(a) ? 'tag tag-accent' : 'tag tag-outline',
+        pick: () => set({ avoid: avoid.includes(a) ? avoid.filter(x => x !== a) : [...avoid, a] }) })), cartTotal, cartCount, hasCart: cartCount > 0 && !stall.paused, cartToSchool: Math.round(itemsTotal * stall.cutPct / 100) + (s.donation || 0), combos, hasCombos: combos.length > 0,
+      extraOpts: [0, 10, 20, 50].map(v => ({ label: v ? '₹' + v : 'No thanks', cls: (s.donation || 0) === v ? 'btn btn-primary' : 'btn btn-secondary', pick: () => set({ donation: v }) })),
+      donateAmt: s.donateAmt, donateOpts: [20, 50, 100].map(v => ({ amount: v, cls: s.donateAmt === v ? 'btn btn-primary' : 'btn btn-secondary', pick: () => set({ donateAmt: v }) })),
+      donateLink: `upi://pay?pa=${s.schoolUpi}&pn=${encodeURIComponent('School fund')}&am=${s.donateAmt}&cu=INR&tn=Donation`,
+      donateDone: () => { this.setState(p => ({ donations: [...p.donations, { amount: p.donateAmt, name: p.userName || 'Guest', time: this.now() }] })); this.notify('c', `₹${s.donateAmt} to the school fund — that means a lot.`, 'Thank you!'); },
+      cNoticeTitle: s.cNoticeTitle,
+      msgTemplates: [['invite', 'Stall invite', 'Sent by admin to new stall owners', '{name} {link} {code}'], ['receipt', 'Receipt', 'Sent by the stall owner to the customer', '{name} {stall} {token} {items} {total} {paidBy} {schoolShare} {cause}'],
+        ['ready', 'Order ready', 'Sent by the stall owner when food is ready', '{name} {token} {stall}'],
+        ['reminder', 'Settle-up reminder', 'Sent by admin to stall owners', '{owner} {stall} {due} {schoolUpi} {cause}'],
+        ['thankyou', 'Thank-you', 'Sent by admin after the fair', '{owner} {stall} {raised} {cause} {orders}']].map(([k, title, who, vars]) => ({ title, who, vars, value: s.templates[k],
+          edited: s.templates[k] !== DEFAULT_TEMPLATES[k], set: e => set({ templates: { ...s.templates, [k]: e.target.value } }), reset: () => set({ templates: { ...s.templates, [k]: DEFAULT_TEMPLATES[k] } }) })),
+      ...(() => { const kc = { Lost: 'tag tag-accent', Found: 'tag tag-accent-2', Notice: 'tag tag-neutral' };
+        const dec = n => ({ ...n, cls: kc[n.kind], opacity: n.open ? 1 : 0.55, toggleLabel: n.open ? 'Mark resolved' : 'Show again', contact: n.phone ? ` · ${n.phone}` : '',
+          toggle: () => this.setState(p => ({ notices: p.notices.map(x => x.id === n.id ? { ...x, open: !x.open } : x) })) });
+        const open = s.notices.filter(n => n.open).slice().reverse().map(dec), cr = s.cReport, an = s.aNotice;
+        const post = (kind, text, by, phone) => this.setState(p => ({ notices: [...p.notices, { id: 'n' + Date.now(), kind, text: text.trim(), by, phone, time: this.now(), open: true }] }));
+        return { openNotices: open, noNotices: open.length === 0, hasNotices: open.length > 0, allNotices: s.notices.slice().reverse().map(dec),
+          cReport: { ...cr, isOpen: cr.open, closed: !cr.open, invalid: !cr.text.trim(), placeholder: cr.kind === 'Lost' ? 'What did you lose? e.g. Red cardigan, size 8' : 'What did you find, and where?',
+            kinds: ['Lost', 'Found'].map(k => ({ label: 'I ' + (k === 'Lost' ? 'lost' : 'found') + ' something', cls: cr.kind === k ? 'btn btn-primary' : 'btn btn-ghost', pick: () => set({ cReport: { ...cr, kind: k } }) })),
+            open: () => set({ cReport: { ...cr, open: true } }), cancel: () => set({ cReport: { open: false, kind: 'Lost', text: '' } }), setText: e => set({ cReport: { ...cr, text: e.target.value } }),
+            submit: () => { post(cr.kind, cr.text, s.userName || 'Guest', s.userPhone); set({ cReport: { open: false, kind: 'Lost', text: '' } }); } },
+          aNotice: { ...an, invalid: !an.text.trim(), setText: e => set({ aNotice: { ...an, text: e.target.value } }),
+            kinds: ['Found', 'Lost', 'Notice'].map(k => ({ label: k, cls: an.kind === k ? 'btn btn-primary' : 'btn btn-secondary', pick: () => set({ aNotice: { ...an, kind: k } }) })),
+            post: () => { post(an.kind, an.text, 'Admin'); set({ aNotice: { ...an, text: '' } }); } } }; })(), canHold: stall.kind === 'goods',
+      nextToken, upiLink, payApp: s.payApp,
+      cScan: s.cScreen === 'scan', cHome: s.cScreen === 'home', cStall: s.cScreen === 'stall', cInfo: s.cScreen === 'info', cCart: s.cScreen === 'cart', cSuccess: s.cScreen === 'success' && !!lastOrder, cOrders: s.cScreen === 'orders',
+      showCNav: s.cScreen !== 'scan' && s.cScreen !== 'cart', cNavStalls: tab(['home', 'stall', 'info', 'success'].includes(s.cScreen)), cNavOrders: tab(s.cScreen === 'orders'),
+      myActiveBadge: myActive ? ` (${myActive})` : '',
+      onName: e => set({ userName: e.target.value }), onPhone: e => set({ userPhone: e.target.value }),
+      enter: () => set({ userName: s.userName.trim() || 'Rahul', userPhone: s.userPhone.trim() || '98450 12345', cScreen: 'stall', stallId: 's1' }),
+      oItem: s.oScreen === 'item' && !!s.draft, draft,
+      dName: setD('name'), dNote: setD('note'), dPrice: setD('price'), dStock: setD('stock'), dSizes: setD('sizes'),
+      draftPhoto: e => this.readPhoto(e, url => this.setState(p => ({ draft: { ...p.draft, photo: url } }))),
+      newItem: () => set({ oScreen: 'item', draftId: null, draft: { name: '', note: '', price: '', stock: '10', sizes: '', photo: '', tags: [] } }),
+      cancelDraft: () => set({ oScreen: 'menu', draft: null, draftId: null }), saveDraft: () => this.saveDraft(),
+      deleteItem: () => set({ oScreen: 'menu', draft: null, draftId: null, stalls: s.stalls.map(x => x.id === s.ownerStallId ? { ...x, items: x.items.filter(i => i.id !== s.draftId) } : x) }),
+      ownerStallView: { hasPhoto: !!ownerStall.photo, noPhoto: !ownerStall.photo, paused: !!ownerStall.paused, live: !ownerStall.paused },
+      stallPhoto: e => this.readPhoto(e, url => this.updateOwnerStall('photo', url)),
+      setHours: e => this.updateOwnerStall('hours', e.target.value), setRole: e => this.updateOwnerStall('ownerRole', e.target.value),
+      otherCat: !['Food', 'Clothes', 'Crafts'].includes(ownerStall.category),
+      otherCatValue: ownerStall.category === 'Other' ? '' : ownerStall.category,
+      setOtherCat: e => this.updateOwnerStall('category', e.target.value.trim() ? e.target.value : 'Other'),
+      catOpts: cats.map(c => ({ label: c, cls: (c === 'Other' ? !['Food', 'Clothes', 'Crafts'].includes(ownerStall.category) : ownerStall.category === c) ? 'btn btn-primary' : 'btn btn-secondary',
+        pick: () => this.setState(p => ({ stalls: p.stalls.map(x => x.id === p.ownerStallId ? { ...x, category: c, kind: c === 'Food' ? 'food' : 'goods', menuLabel: c === 'Food' ? 'Menu' : x.menuLabel === 'Menu' ? 'On sale' : x.menuLabel } : x) })) })),
+      stallsList: s.stalls.map(st => ({ ...st, initial: st.name[0], hasPhoto: !!st.photo, noPhoto: !st.photo, preview: st.items.map(i => i.name).join(' · '), cutLabel: `${st.cutPct}% to school`,
+        open: () => set({ stallId: st.id, cScreen: 'stall', cart: st.id === s.stallId ? s.cart : {} }) })),
+      goHome: () => set({ cScreen: 'home' }), goStall: () => set({ cScreen: 'stall' }),
+      goInfo: () => set({ cScreen: 'info', stallId: lastOrder && s.cScreen === 'success' ? lastOrder.stallId : s.stallId }),
+      goCart: () => set({ cScreen: 'cart' }), goOrders: () => set({ cScreen: 'orders' }),
+      openPay: () => set({ payStep: 'choose' }), closePay: () => set({ payStep: null }), hold: () => this.placeOrder('hold'),
+      payChoose: s.payStep === 'choose', payOpening: s.payStep === 'opening',
+      upiApps: apps.map(a => ({ name: a, pick: () => set({ payStep: 'opening', payApp: a === 'Other UPI app' ? 'UPI' : a }) })),
+      paid: () => this.placeOrder('upi'), lastOrder,
+      myOrders: myRaw.map(decorate), noMyOrders: myRaw.length === 0,
+      ownerSwitch: s.stalls.map(st => ({ name: st.name, cls: st.id === s.ownerStallId && s.oRole !== 'helper' && s.oAuth ? 'btn btn-secondary' : 'btn btn-ghost',
+        pick: () => set({ ownerStallId: st.id, oAuth: true, oRole: 'owner', oScreen: 'queue', oTab: 'pending', cashCart: {} }) })).slice(0, 3).concat([{ name: 'Helper · Ishaan', cls: s.oRole === 'helper' && s.oAuth ? 'btn btn-secondary' : 'btn btn-ghost',
+        pick: () => set({ ownerStallId: 's1', oAuth: true, oRole: 'helper', helperName: 'Ishaan', oScreen: 'queue', oTab: 'pending' }) }]),
+      isHelper: s.oRole === 'helper', isOwner: s.oRole !== 'helper', helperName: s.helperName,
+      togglePause: () => this.updateOwnerStall('paused', !ownerStall.paused), setPauseMsg: e => this.updateOwnerStall('pauseMsg', e.target.value),
+      printList: () => this.printList(), exportOrders: () => this.exportOrders(), exportStalls: () => this.exportStalls(),
+      thanks: (() => { const top = ownerSales.top[0];
+        const headline = `You raised ₹${ownerSales.school} for ${ownerStall.cause}`, sub = `${ownerSales.count} orders today${top ? ` · best seller: ${top.name}` : ''}`;
+        return { headline, sub, wa: `https://wa.me/?text=${encodeURIComponent(`${ownerStall.name} at the school fair: ${headline}! ${sub}. Thank you to everyone who came by 🙏`)}` }; })(),
+      ownerCombos: (ownerStall.combos || []).map(c => ({ name: c.name, priceStr: '₹' + c.price, partsText: c.parts.map(id => (ownerStall.items.find(i => i.id === id) || {}).name).filter(Boolean).join(' + '),
+        remove: () => this.updateOwnerStall('combos', (ownerStall.combos || []).filter(x => x.id !== c.id)) })),
+      noComboDraft: !s.comboDraft, newCombo: () => set({ comboDraft: { name: '', parts: [], price: '' } }),
+      comboDraft: (() => { const cd = s.comboDraft; if (!cd) return { on: false };
+        const full = cd.parts.reduce((a, id) => a + ((ownerStall.items.find(i => i.id === id) || {}).price || 0), 0), upd = p => set({ comboDraft: { ...cd, ...p } });
+        return { on: true, name: cd.name, price: cd.price, full, invalid: cd.parts.length < 2 || !(parseInt(cd.price, 10) > 0),
+          chips: ownerStall.items.map(it => ({ label: it.name, cls: cd.parts.includes(it.id) ? 'tag tag-accent' : 'tag tag-outline', pick: () => upd({ parts: cd.parts.includes(it.id) ? cd.parts.filter(x => x !== it.id) : [...cd.parts, it.id] }) })),
+          setName: e => upd({ name: e.target.value }), setPrice: e => upd({ price: e.target.value.replace(/\D/g, '') }), cancel: () => set({ comboDraft: null }),
+          save: () => { const name = cd.name.trim() || cd.parts.map(id => ownerStall.items.find(i => i.id === id).name).join(' + ');
+            this.updateOwnerStall('combos', [...(ownerStall.combos || []), { id: 'k' + Date.now(), name, parts: cd.parts, price: parseInt(cd.price, 10) }]); set({ comboDraft: null }); } }; })(),
+      ownerHelpers: (ownerStall.helpers || []).map(hp => ({ ...hp, remove: () => this.updateOwnerStall('helpers', (ownerStall.helpers || []).filter(x => x !== hp)) })),
+      helperDraft: (() => { const hd = s.helperDraft, upd = p => set({ helperDraft: { ...hd, ...p } });
+        return { ...hd, invalid: !hd.name.trim() || digits(hd.phone).length < 10 || !/^\d{4}$/.test(hd.pin),
+          setName: e => upd({ name: e.target.value }), setPhone: e => upd({ phone: e.target.value }), setPin: e => upd({ pin: e.target.value.replace(/\D/g, '').slice(0, 4) }),
+          add: () => { this.updateOwnerStall('helpers', [...(ownerStall.helpers || []), { name: hd.name.trim(), phone: hd.phone, pin: hd.pin }]); set({ helperDraft: { name: '', phone: '', pin: '' } }); } }; })(),
+      oLoggedOut: !s.oAuth, oLoggedIn: s.oAuth, oLoginMode: s.oAuthMode === 'login', oJoinMode: s.oAuthMode === 'join',
+      login: { ...s.login, setPhone: e => set({ login: { ...s.login, phone: e.target.value, err: '' } }), setPin: e => set({ login: { ...s.login, pin: e.target.value.replace(/\D/g, '').slice(0, 4), err: '' } }),
+        submit: () => this.ownerLogin(), toJoin: () => set({ oAuthMode: 'join' }) },
+      join: { ...s.join, ...Object.fromEntries(['code', 'stall', 'owner', 'phone', 'pin'].map(k => ['set' + k[0].toUpperCase() + k.slice(1), e => set({ join: { ...s.join, [k]: k === 'pin' ? e.target.value.replace(/\D/g, '').slice(0, 4) : e.target.value, err: '' } })])),
+        submit: () => this.joinStall(), toLogin: () => set({ oAuthMode: 'login' }) },
+      ownerLogout: () => set({ oAuth: false, oScreen: 'queue', draft: null }),
+      customerLogout: () => set({ cScreen: 'scan', userName: '', userPhone: '', cart: {} }),
+      adminIn: s.adminAuth, adminOut: !s.adminAuth, adminLogout: () => set({ adminAuth: false }),
+      adminLogin: { ...s.adminLogin, setEmail: e => set({ adminLogin: { ...s.adminLogin, email: e.target.value, err: '' } }), setPw: e => set({ adminLogin: { ...s.adminLogin, pw: e.target.value, err: '' } }),
+        submit: () => s.adminLogin.pw === 'fair2024' ? set({ adminAuth: true, adminLogin: { ...s.adminLogin, pw: '', err: '' } }) : set({ adminLogin: { ...s.adminLogin, err: 'Wrong password. (Demo: fair2024)' } }) },
+      invite: (() => { const iv = s.inviteTo, d = digits(iv.phone), msg = (s.templates.invite || '').replace(/\{(\w+)\}/g, (m, k) => ({ name: iv.name.trim() || 'there', link: APP_URL, code: s.inviteCode })[k] ?? m);
+        return { ...iv, invalid: d.length < 10, wa: d.length >= 10 ? `https://wa.me/91${d}?text=${encodeURIComponent(msg)}` : '#',
+          setName: e => set({ inviteTo: { ...iv, name: e.target.value } }), setPhone: e => set({ inviteTo: { ...iv, phone: e.target.value } }),
+          sent: () => { if (d.length < 10) return; set({ invitesSent: [...s.invitesSent, { name: iv.name.trim() || 'Unnamed', phone: iv.phone, time: this.now() }], inviteTo: { name: '', phone: '' } }); },
+          copy: () => { try { navigator.clipboard.writeText(msg); } catch (e) {} this.notify('o', 'Paste it into any WhatsApp group', 'Invite message copied'); },
+          list: s.invitesSent.slice().reverse().map(x => ({ ...x, joined: s.stalls.some(st => digits(st.phone) === digits(x.phone)) ? 'Joined ✓' : 'Not joined yet' })), hasList: s.invitesSent.length > 0 }; })(),
+      causeOpts: s.causes.map(c => ({ label: c, cls: ownerStall.cause === c ? 'btn btn-primary' : 'btn btn-secondary', pick: () => this.updateOwnerStall('cause', c) })),
+      adminCauses: s.causes.map(c => ({ label: c, uses: s.stalls.filter(st => st.cause === c).length, remove: () => set({ causes: s.causes.filter(x => x !== c) }) })),
+      causeDraft: s.causeDraft, setCauseDraft: e => set({ causeDraft: e.target.value }), noCauseDraft: !s.causeDraft.trim(),
+      addCause: () => { const c = s.causeDraft.trim(); if (c && !s.causes.includes(c)) set({ causes: [...s.causes, c], causeDraft: '' }); },
+      stallQr: (() => { const link = `${APP_URL}/s/${ownerStall.id}`; return { link, url: makeQr(link), file: ownerStall.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-qr.svg' }; })(),
+      fairQr: makeQr(APP_URL),
+      inviteCode: s.inviteCode, newInvite: () => set({ inviteCode: 'FAIR' + Math.floor(10 + Math.random() * 90) }),
+      access: s.stalls.map(st => ({ name: st.name, owner: st.owner, phone: st.phone, wasReset: s.resetIds.includes(st.id),
+        reset: () => set({ stalls: s.stalls.map(x => x.id === st.id ? { ...x, pin: '0000' } : x), resetIds: [...s.resetIds.filter(i => i !== st.id), st.id] }) })),
+      oQueue: s.oScreen === 'queue', oDetail: s.oScreen === 'detail' && !!oOrder, oMenu: s.oScreen === 'menu', oCash: s.oScreen === 'cash', oSetup: s.oScreen === 'setup', oSales: s.oScreen === 'sales',
+      queue, queueEmpty: queue.length === 0, oOrder,
+      countPending: byTab.pending.length, countReady: byTab.ready.length, countDone: byTab.done.length,
+      tabPending: tab(s.oTab === 'pending'), tabReady: tab(s.oTab === 'ready'), tabDone: tab(s.oTab === 'done'),
+      tabToPending: () => set({ oTab: 'pending' }), tabToReady: () => set({ oTab: 'ready' }), tabToDone: () => set({ oTab: 'done' }),
+      backQueue: () => set({ oScreen: 'queue' }), toMenu: () => set({ oScreen: 'menu' }), toCash: () => set({ oScreen: 'cash' }), toSales: () => set({ oScreen: 'sales' }), toSetup: () => set({ oScreen: 'setup' }),
+      oNavQueue: oNav('queue'), oNavMenu: oNav('menu'), oNavCash: oNav('cash'), oNavSales: oNav('sales'), oNavSetup: oNav('setup'),
+      ownerMenu, ownerSales, close, settle, ownerSettle, schoolUpi: s.schoolUpi, setSchoolUpi: e => set({ schoolUpi: e.target.value }), cashMenu, cashTotal, hasCash: cashTotal > 0, clearCash: () => set({ cashCart: {} }), recordCash: () => this.recordCash(),
+      setName: e => this.updateOwnerStall('name', e.target.value), setUpi: e => this.updateOwnerStall('upi', e.target.value),
+      setOwner: e => this.updateOwnerStall('owner', e.target.value), setAbout: e => this.updateOwnerStall('about', e.target.value),
+      admin: { total: sum(allPaid), donations: s.donations.reduce((a, d) => a + d.amount, 0) + allPaid.reduce((a, o) => a + (o.donation || 0), 0), school: rows.reduce((a, r) => a + r.school, 0) + s.donations.reduce((a, d) => a + d.amount, 0), count: allPaid.length,
+        cash: sum(allPaid.filter(o => o.app === 'Cash')), upi: sum(allPaid.filter(o => o.app !== 'Cash')),
+        waiting: s.orders.filter(o => ['pending', 'verify', 'hold'].includes(o.status)).length, rows },
+      board, showIdeas: this.props.showIdeas ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
