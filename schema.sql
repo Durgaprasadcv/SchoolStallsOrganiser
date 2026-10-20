@@ -41,7 +41,7 @@ $$;
 create table fairs (
   id            uuid primary key default gen_random_uuid(),
   name          text not null,
-  slug          text unique not null,                 -- used in URLs / QR: /<slug>/s/<stall_id>
+  slug          text unique not null,                 -- every route starts with it: /<slug>, /<slug>/s/<stall_id> (QR), /<slug>/owner|admin|board
   school_upi    text not null,
   invite_code   text not null,
   payment_check text not null default 'owner' check (payment_check in ('owner', 'customer')),
@@ -250,6 +250,7 @@ begin
       if s.kind <> 'goods' then raise exception 'holds only for goods stalls'; end if;
       v_status := 'hold'; p_paid_by := 'Pay at stall';
     else
+      if p_paid_by not in ('GPay', 'PhonePe', 'Paytm', 'UPI') then raise exception 'bad payment method'; end if;
       v_status := case when f.payment_check = 'owner' then 'verify' else 'pending' end;
     end if;
   end if;
@@ -295,7 +296,8 @@ end $$;
 
 -- Allowed transitions:
 --   verify → pending (payment received)        hold → done (paid cash) | cancelled (release)
---   pending → ready → done                      any non-done → cancelled (owner)
+--   pending → ready → done                      verify | hold | pending → cancelled (staff; stock restored)
+--   ready orders can't be cancelled — the food/goods are already prepared and paid for
 create or replace function set_order_status(p_order uuid, p_status order_status) returns orders
 language plpgsql security definer set search_path = public as $$
 declare o orders; ln order_lines; cb combos; part uuid;
@@ -326,15 +328,18 @@ begin
   return o;
 end $$;
 
--- release expired holds (schedule every minute with pg_cron, or call from the client on load)
+-- release expired holds. Safe for anyone to call (only touches holds past hold_until), so the app calls
+-- supabase.rpc('release_expired_holds') when the stall menu or owner Orders screen loads.
+-- Optionally also schedule with pg_cron: select cron.schedule('holds', '* * * * *', 'select release_expired_holds()');
 create or replace function release_expired_holds() returns int
 language plpgsql security definer set search_path = public as $$
-declare r record; n int := 0;
+declare r record; n int := 0; v_claims text := current_setting('request.jwt.claims', true);
 begin
-  for r in select id, stall_id from orders where status = 'hold' and hold_until < now() loop
+  for r in select id, stall_id from orders where status = 'hold' and hold_until < now() for update skip locked loop
     perform set_config('request.jwt.claims', json_build_object('app_role','owner','stall_id',r.stall_id)::text, true);
     perform set_order_status(r.id, 'cancelled'); n := n + 1;
   end loop;
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);   -- don't leak the borrowed owner claims
   return n;
 end $$;
 
@@ -351,7 +356,7 @@ select s.id as stall_id, s.fair_id, s.name, s.cut_pct,
 from stalls s left join orders o on o.stall_id = s.id
 group by s.id;
 
--- token board: no personal data, readable by anon
+-- token board: no personal data, readable by anon. Board polls this (~5 s); Realtime doesn't stream views.
 create or replace view board_tokens as
 select o.stall_id, s.fair_id, s.name as stall_name, o.token, o.status, o.created_at
 from orders o join stalls s on s.id = o.stall_id
@@ -380,7 +385,7 @@ create policy fair_read    on fairs   for select using (true);
 create policy cause_read   on causes  for select using (true);
 create policy item_read    on items   for select using (true);
 create policy combo_read   on combos  for select using (true);
-create policy notice_read  on notices for select using (open or is_admin_of(fair_id));
+create policy notice_read  on notices for select using (is_admin_of(fair_id));   -- everyone else reads notices_public (no phone)
 create policy tmpl_read    on templates for select using (true);
 
 -- stalls: public columns via view; owners edit own; admin edits all in fair
@@ -395,13 +400,20 @@ create policy stall_admin_write on stalls for all    using (is_admin_of(fair_id)
 -- owners may not change cut_pct / pin / fair: enforce with a trigger
 create or replace function guard_stall_update() returns trigger language plpgsql as $$
 begin
-  if app_role() <> 'admin' and (new.cut_pct <> old.cut_pct or new.fair_id <> old.fair_id or new.prefix <> old.prefix
+  -- only guard direct client writes; security-definer functions (place_order) and the service role pass through
+  if current_user in ('anon', 'authenticated') and app_role() <> 'admin' and (new.cut_pct <> old.cut_pct or new.fair_id <> old.fair_id or new.prefix <> old.prefix
                                 or new.pin_hash <> old.pin_hash or new.next_token <> old.next_token) then
     raise exception 'only admin can change that';
   end if;
   return new;
 end $$;
 create trigger stalls_guard before update on stalls for each row execute function guard_stall_update();
+-- a 4-digit PIN hash is brute-forced in seconds; keep it (and lockout state) away from helpers/owners
+-- (column revoke is a no-op under Supabase's table-wide grant, so re-grant only the safe columns)
+revoke select on stalls from anon, authenticated;
+grant select (id, fair_id, prefix, name, category, kind, hours, owner_name, owner_role, phone, pin_must_change,
+              upi_id, about, photo_path, cause_id, cut_pct, paused, pause_msg, next_token, closeout, created_at)
+  on stalls to authenticated;
 
 create policy item_owner_write  on items  for all using (app_role() = 'owner' and app_stall() = stall_id) with check (app_role() = 'owner' and app_stall() = stall_id);
 create policy combo_owner_write on combos for all using (app_role() = 'owner' and app_stall() = stall_id) with check (app_role() = 'owner' and app_stall() = stall_id);
@@ -443,12 +455,17 @@ create or replace view notices_public as select id, fair_id, kind, text, by_name
 grant select on notices_public to anon, authenticated;
 
 -- function grants
-revoke all on function place_order, set_order_status, release_expired_holds from public;
+-- Supabase default privileges grant execute to anon/authenticated, so revoke from them too
+revoke all on function place_order, set_order_status, release_expired_holds from public, anon, authenticated;
 grant execute on function place_order(uuid, jsonb, order_mode, pay_method, int) to authenticated;
 grant execute on function set_order_status(uuid, order_status)                 to authenticated;
+grant execute on function release_expired_holds()                              to anon, authenticated;
 
 -- ───────────────────────── realtime ─────────────────────────
-alter publication supabase_realtime add table orders, notices, settlements, items, stalls;
+-- Realtime respects RLS: `stalls` changes reach only owners/admin. Customers can't read `stalls`, so the
+-- customer app re-fetches `stalls_public` (pause state) every ~15 s and on tab focus. place_order rejects
+-- paused stalls anyway, so a stale banner can never let an order through.
+alter publication supabase_realtime add table orders, notices, settlements, donations, items, stalls;
 
 -- ───────────────────────── privacy: purge 30 days after ─────────────────────────
 -- schedule daily with pg_cron:  select cron.schedule('purge-pii', '0 3 * * *', 'select purge_pii()');
@@ -457,6 +474,7 @@ create or replace function purge_pii() returns void language sql security define
   update notices   set by_phone = null       where created_at < now() - interval '30 days';
   delete from customers                       where created_at < now() - interval '30 days';
 $$;
+revoke all on function purge_pii from public, anon, authenticated;
 
 -- keep-alive for the free tier (call from a GitHub Action / Cloudflare cron every 3 days)
 create or replace function ping() returns text language sql stable as $$ select 'ok' $$;

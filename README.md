@@ -64,13 +64,15 @@ templates(fair_id, key 'invite'|'receipt'|'ready'|'reminder'|'thankyou', body)
 ### 2. Live updates across phones
 - Owner orders screen subscribes to Supabase Realtime on `orders where stall_id = X`. New row → in-app banner "New order — KOT" + Web Push if app is in background.
 - Customer "My orders" subscribes to their own orders. Status → `ready` → banner "Your order is ready" + Web Push.
-- Token board (`/board` page for a TV/laptop) subscribes to all orders for the fair + open notices.
+- Token board (`/:slug/board` page for a TV/laptop) runs signed out, so it can't read or subscribe to `orders`. It **polls** the `board_tokens` view (no phone numbers) and `notices_public` every ~5 s, filtered by `fair_id`. Realtime can't stream views, and a 5 s delay is fine for a pickup screen.
+- Customer stall list / menu: customers can't read `stalls` (RLS), so Realtime on it never reaches them. Re-fetch `stalls_public` every ~15 s and on tab focus to show/clear the "Back soon" banner. `place_order` rejects paused stalls server-side, so a stale banner can't let an order through — show its error as "Back soon".
+- Expired holds: call `supabase.rpc('release_expired_holds')` when the stall menu and owner Orders screen load (granted to everyone; it only releases holds past `hold_until` and puts the stock back). Optionally also run it every minute with pg_cron.
 - Admin panel subscribes to orders, settlements, donations.
 - Fallback if push permission is denied: the owner gets a one-tap **"Ready" on WhatsApp** link (already in design).
 
 ### 3. Hosting
 - One deployed site, e.g. `https://<fair>.pages.dev` or a custom domain.
-- Routes: `/` (all stalls), `/s/:stallId` (stall menu — this is what each stall QR encodes), `/owner`, `/admin`, `/board`.
+- Routes all start with the fair's `slug` (`fairs.slug`, e.g. `greenfield`): `/:slug` (all stalls), `/:slug/s/:stallId` (stall menu — this is what each stall QR encodes), `/:slug/owner`, `/:slug/admin`, `/:slug/board`. This matches the prototype's `APP_URL + '/s/' + id`.
 - Replace the placeholder `https://stallday.app/greenfield` (constant `APP_URL` in the prototype) everywhere: QR codes, invite message, price list.
 
 ### 4. Privacy & security
@@ -134,7 +136,7 @@ Run a 30-minute rehearsal with 2–3 stalls, ~10 parents:
 **Admin (desktop/tablet)**
 - Login · totals (sales, raised for school, orders, UPI/cash/donations, waiting) · Excel exports · per-stall table (school % −/+, cause, day-closed status) · Causes editor · Settle-ups (owed/received/pending, record UPI/cash, WhatsApp reminder + thank-you) · WhatsApp message templates (invite, receipt, ready, reminder, thank-you with `{placeholders}`) · Lost & found / announcements · Stall logins (invite code, invite by WhatsApp or copy for group, invite list with joined status, reset PIN).
 
-**Token board (TV, `/board`)** — "Ready for pickup", fair QR, open notices as pills, per-stall ready tokens (large) and preparing list.
+**Token board (TV, `/:slug/board`)** — "Ready for pickup", fair QR, open notices as pills, per-stall ready tokens (large) and preparing list.
 
 ## Key business rules
 - Payment check default: **owner confirms** UPI ("verify" status) before preparing. Configurable per fair.
