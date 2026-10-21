@@ -303,7 +303,12 @@ language plpgsql security definer set search_path = public as $$
 declare o orders; ln order_lines; cb combos; part uuid;
 begin
   select * into o from orders where id = p_order for update;
-  if not found or not is_staff_of(o.stall_id) then raise exception 'not allowed'; end if;
+  if not found then raise exception 'not allowed'; end if;
+  -- a customer may cancel their own order only before the stall has confirmed payment (backed out of UPI)
+  if not is_staff_of(o.stall_id)
+     and not (o.customer_id = auth.uid() and o.status = 'verify' and p_status = 'cancelled') then
+    raise exception 'not allowed';
+  end if;
   if not (
        (o.status = 'verify'  and p_status in ('pending', 'cancelled'))
     or (o.status = 'hold'    and p_status in ('done', 'cancelled'))
@@ -382,6 +387,12 @@ alter table push_subscriptions enable row level security;
 
 -- public catalogue (anyone with the link)
 create policy fair_read    on fairs   for select using (true);
+-- invite_code is the key to creating a stall: keep it out of public reads (admin gets it via admin_invite_code())
+revoke select on fairs from anon, authenticated;
+grant select (id, name, slug, school_upi, payment_check, created_at) on fairs to anon, authenticated;
+create or replace function admin_invite_code(f uuid) returns text language sql stable security definer set search_path = public as $$
+  select invite_code from fairs where id = f and is_admin_of(f)
+$$;
 create policy cause_read   on causes  for select using (true);
 create policy item_read    on items   for select using (true);
 create policy combo_read   on combos  for select using (true);

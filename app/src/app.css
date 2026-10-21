@@ -1,0 +1,33 @@
+/* App-level helpers on top of organic.css (the design system — copy of _ds/…/styles.css). */
+a { color: var(--color-accent-700); }
+a:hover { color: var(--color-accent-800); }
+button { font: inherit; }
+
+.display { font-family: var(--font-heading); font-weight: 400; margin: 0; line-height: 1.1; }
+.stack { display: flex; flex-direction: column; }
+.row { display: flex; justify-content: space-between; gap: var(--space-3); }
+.wrap { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.avatar {
+  flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-heading); overflow: hidden; background-size: cover; background-position: center;
+}
+.label-caps { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 0 var(--space-2); }
+.chip { cursor: pointer; border: none; font: inherit; font-size: 13px; }
+.err { font-size: 14px; font-weight: 600; color: var(--color-accent-800); }
+
+/* phone-width shell, full screen on mobile, centred on desktop */
+.phone { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--color-bg); position: relative; display: flex; flex-direction: column; }
+.phone-main { flex: 1; display: flex; flex-direction: column; }
+.bottom-nav {
+  position: sticky; bottom: 0; z-index: 10; display: flex; gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  background: var(--color-bg); box-shadow: var(--shadow-sm);
+}
+.toast {
+  position: fixed; top: var(--space-3); left: 50%; transform: translateX(-50%); width: min(456px, calc(100% - 2 * var(--space-3)));
+  z-index: 30; color: var(--color-bg); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 2px;
+}
+.sheet-backdrop { position: fixed; inset: 0; z-index: 20; background: color-mix(in srgb, var(--color-text) 40%, transparent); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { background: var(--color-bg); width: 100%; max-width: 480px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.cart-bar { position: fixed; left: 50%; transform: translateX(-50%); width: min(444px, calc(100% - 2 * var(--space-4))); bottom: 84px; z-index: 5; }
