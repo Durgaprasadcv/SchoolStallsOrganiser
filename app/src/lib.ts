@@ -1,7 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 import qrcode from 'qrcode-generator';
 
-export const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+const URL_ = import.meta.env.VITE_SUPABASE_URL, KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const supabase = createClient(URL_, KEY);
+// Stall owners/helpers get their own session store, so a parent who also runs a stall keeps both logins on one phone.
+export const staff = createClient(URL_, KEY, { auth: { storageKey: 'stallday-staff' } });
+
+type StallAuth = { access_token: string; refresh_token: string; kind: 'owner' | 'helper'; must_change: boolean; joined: boolean; error?: string };
+export const stallAuth = async (body: Record<string, string>): Promise<StallAuth> => {
+  try {
+    const r = await fetch(`${URL_}/functions/v1/stall-auth`, { method: 'POST', headers: { 'content-type': 'application/json', apikey: KEY, authorization: `Bearer ${KEY}` }, body: JSON.stringify(body) });
+    return await r.json();
+  } catch { return { error: 'No connection — check your internet and try again.' } as StallAuth; }
+};
+
+// Phone photos are 3–10 MB; shrink to ≤800px WebP (JPEG where the browser can't encode WebP) before upload.
+export const shrinkPhoto = async (file: File, max = 800): Promise<Blob> => {
+  const bmp = await createImageBitmap(file), k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height);
+  const enc = (type: string) => new Promise<Blob | null>(res => c.toBlob(res, type, 0.8));
+  const b = (await enc('image/webp')) || (await enc('image/jpeg'));
+  if (!b) throw new Error('Could not read that photo');
+  return b.type === 'image/webp' || b.type === 'image/jpeg' ? b : (await enc('image/jpeg'))!;
+};
 
 // ───────── types (mirror schema.sql) ─────────
 export type Fair = { id: string; name: string; slug: string; school_upi: string; payment_check: 'owner' | 'customer' };
@@ -41,6 +63,7 @@ export const lineLabel = (l: { name: string; size?: string | null }) => l.name +
 export const time = (ts: string) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 export const photoUrl = (path: string | null) => (path ? supabase.storage.from('photos').getPublicUrl(path).data.publicUrl : '');
 export const appUrl = (slug: string) => `${location.origin}/${slug}`;
+export const stallUrl = (slug: string, id: string) => `${appUrl(slug)}/s/${id}`;
 export const cutLine = (pct: number, cause: string) => (pct >= 100 ? `Every rupee goes to ${cause}` : `${pct}% of sales goes to ${cause}`);
 export const menuLabel = (s: Stall) => (s.kind === 'food' ? 'Menu' : 'On sale');
 

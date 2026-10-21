@@ -3,8 +3,9 @@
 --
 -- Auth model
 --   admin    : Supabase Auth email/password; set auth.users.raw_app_meta_data = {"app_role":"admin","fair_id":"<uuid>"}
---   owner    : custom JWT minted by the `pin-login` Edge Function, claims {sub, role:"authenticated", app_role:"owner",  fair_id, stall_id}
---   helper   : same Edge Function, claims {..., app_role:"helper", helper_id}
+--   owner    : real Supabase Auth user (id = stall id) created by the `stall-auth` Edge Function after pin_check();
+--              app_metadata {app_role:"owner", fair_id, stall_id}. Session minted via magic-link token, never emailed.
+--   helper   : same, id = helper id, app_metadata {app_role:"helper", fair_id, stall_id, helper_id}
 --   customer : supabase.auth.signInAnonymously(); then upsert a `customers` row with id = auth.uid()
 --   board    : reads through the security-definer view `board_tokens` (no phone numbers), granted to anon
 --
@@ -28,7 +29,10 @@ create or replace function app_fair() returns uuid language sql stable as $$
   select nullif(coalesce(auth.jwt() ->> 'fair_id', auth.jwt() -> 'app_metadata' ->> 'fair_id'), '')::uuid
 $$;
 create or replace function app_stall() returns uuid language sql stable as $$
-  select nullif(auth.jwt() ->> 'stall_id', '')::uuid
+  select nullif(coalesce(auth.jwt() ->> 'stall_id', auth.jwt() -> 'app_metadata' ->> 'stall_id'), '')::uuid
+$$;
+create or replace function app_helper() returns uuid language sql stable as $$
+  select nullif(coalesce(auth.jwt() ->> 'helper_id', auth.jwt() -> 'app_metadata' ->> 'helper_id'), '')::uuid
 $$;
 create or replace function is_admin_of(f uuid) returns boolean language sql stable as $$
   select app_role() = 'admin' and app_fair() = f
@@ -90,6 +94,8 @@ create table helpers (
   name       text not null,
   phone      text not null,
   pin_hash   text not null,
+  failed_logins int not null default 0,
+  locked_until  timestamptz,
   created_at timestamptz not null default now(),
   unique (stall_id, phone)
 );
@@ -262,7 +268,7 @@ begin
   values (p_stall, s.prefix || '-' || lpad(s.next_token::text, 2, '0'), c.id, v_name, v_phone, v_status, p_paid_by, 0,
           greatest(p_donation, 0),
           case when p_mode = 'hold' then now() + interval '15 minutes' end,
-          case when app_role() = 'helper' then nullif(auth.jwt() ->> 'helper_id', '')::uuid end)
+          case when app_role() = 'helper' then app_helper() end)
   returning * into o;
   update stalls set next_token = next_token + 1 where id = p_stall;
 
@@ -471,6 +477,120 @@ revoke all on function place_order, set_order_status, release_expired_holds from
 grant execute on function place_order(uuid, jsonb, order_mode, pay_method, int) to authenticated;
 grant execute on function set_order_status(uuid, order_status)                 to authenticated;
 grant execute on function release_expired_holds()                              to anon, authenticated;
+
+-- ───────────────────────── staff logins (owner / helper PINs) ─────────────────────────
+-- A removed helper's session stops working at once (their JWT still says helper, but the row is gone).
+create or replace function is_staff_of(s uuid) returns boolean language sql stable security definer set search_path = public as $$
+  select app_stall() = s and (app_role() = 'owner'
+    or (app_role() = 'helper' and exists (select 1 from helpers h where h.id = app_helper() and h.stall_id = s)))
+$$;
+
+-- helpers: owners see name + phone, never the hash
+revoke select on helpers from anon, authenticated;
+grant select (id, stall_id, name, phone, created_at) on helpers to authenticated;
+
+-- Called only by the `stall-auth` Edge Function (service role). Returns {error} instead of raising, so the
+-- failed-attempt counter survives: 5 wrong PINs → locked for 10 minutes.
+create or replace function pin_check(p_fair text, p_phone text, p_pin text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare f fairs; s stalls; h helpers; v_phone text := right(regexp_replace(p_phone, '\D', '', 'g'), 10);
+begin
+  select * into f from fairs where slug = p_fair;
+  if not found then return jsonb_build_object('error', 'Fair not found.'); end if;
+  select * into s from stalls where fair_id = f.id and phone = v_phone;
+  if found then
+    if s.locked_until > now() then return jsonb_build_object('error', 'Too many wrong PINs — try again in 10 minutes or ask the admin.'); end if;
+    if s.pin_hash <> crypt(p_pin, s.pin_hash) then
+      update stalls set failed_logins = failed_logins + 1,
+                        locked_until = case when failed_logins + 1 >= 5 then now() + interval '10 minutes' end where id = s.id;
+      return jsonb_build_object('error', 'Phone or PIN doesn''t match.');
+    end if;
+    update stalls set failed_logins = 0, locked_until = null where id = s.id;
+    return jsonb_build_object('kind', 'owner', 'id', s.id, 'stall_id', s.id, 'fair_id', f.id, 'name', s.owner_name, 'must_change', s.pin_must_change);
+  end if;
+  select h2.* into h from helpers h2 join stalls s2 on s2.id = h2.stall_id where s2.fair_id = f.id and h2.phone = v_phone limit 1;
+  if found then
+    if h.locked_until > now() then return jsonb_build_object('error', 'Too many wrong PINs — try again in 10 minutes or ask the stall owner.'); end if;
+    if h.pin_hash <> crypt(p_pin, h.pin_hash) then
+      update helpers set failed_logins = failed_logins + 1,
+                         locked_until = case when failed_logins + 1 >= 5 then now() + interval '10 minutes' end where id = h.id;
+      return jsonb_build_object('error', 'Phone or PIN doesn''t match.');
+    end if;
+    update helpers set failed_logins = 0, locked_until = null where id = h.id;
+    return jsonb_build_object('kind', 'helper', 'id', h.id, 'stall_id', h.stall_id, 'fair_id', f.id, 'name', h.name, 'must_change', false);
+  end if;
+  return jsonb_build_object('error', 'Phone or PIN doesn''t match.');
+end $$;
+
+-- New stall with the admin's invite code. Called only by `stall-auth`; returns the same shape as pin_check.
+create or replace function join_stall(p_fair text, p_code text, p_stall text, p_owner text, p_phone text, p_pin text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare f fairs; s stalls; v_phone text := regexp_replace(p_phone, '\D', '', 'g'); v_prefix text; n int := 0;
+begin
+  select * into f from fairs where slug = p_fair for update;                    -- serialises prefix allocation
+  if not found then return jsonb_build_object('error', 'Fair not found.'); end if;
+  if upper(trim(p_code)) <> upper(f.invite_code) then return jsonb_build_object('error', 'That invite code is not right.'); end if;
+  if trim(coalesce(p_stall, '')) = '' or trim(coalesce(p_owner, '')) = '' then return jsonb_build_object('error', 'Add your stall name and your name.'); end if;
+  if length(v_phone) <> 10 then return jsonb_build_object('error', 'Enter a 10-digit phone number.'); end if;
+  if p_pin !~ '^\d{4}$' then return jsonb_build_object('error', 'PIN must be 4 digits.'); end if;
+  if exists (select 1 from stalls where fair_id = f.id and phone = v_phone)
+     or exists (select 1 from helpers h join stalls x on x.id = h.stall_id where x.fair_id = f.id and h.phone = v_phone) then
+    return jsonb_build_object('error', 'This phone already has a stall — log in instead.');
+  end if;
+  loop                                                                             -- A..Z, then AA..ZZ
+    v_prefix := case when n < 26 then chr(65 + n) else chr(65 + n / 26 - 1) || chr(65 + n % 26) end;
+    exit when not exists (select 1 from stalls where fair_id = f.id and prefix = v_prefix);
+    n := n + 1;
+  end loop;
+  insert into stalls (fair_id, prefix, name, owner_name, phone, pin_hash, cause_id)
+  values (f.id, v_prefix, trim(p_stall), trim(p_owner), v_phone, crypt(p_pin, gen_salt('bf')),
+          (select id from causes where fair_id = f.id and name = 'School fund'))
+  returning * into s;
+  return jsonb_build_object('kind', 'owner', 'id', s.id, 'stall_id', s.id, 'fair_id', f.id, 'name', s.owner_name, 'must_change', false, 'joined', true);
+end $$;
+
+-- Owner or helper sets their own PIN (after an admin reset to 0000, or any time)
+create or replace function change_pin(p_pin text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_pin !~ '^\d{4}$' then raise exception 'PIN must be 4 digits'; end if;
+  if p_pin = '0000' then raise exception 'Pick a PIN other than 0000'; end if;
+  if app_role() = 'owner' then
+    update stalls set pin_hash = crypt(p_pin, gen_salt('bf')), pin_must_change = false where id = app_stall();
+  elsif app_role() = 'helper' then
+    update helpers set pin_hash = crypt(p_pin, gen_salt('bf')) where id = app_helper();
+  else raise exception 'not allowed'; end if;
+end $$;
+
+create or replace function add_helper(p_name text, p_phone text, p_pin text) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v_phone text := regexp_replace(p_phone, '\D', '', 'g'); v_fair uuid; v_id uuid;
+begin
+  if app_role() <> 'owner' then raise exception 'not allowed'; end if;
+  if trim(coalesce(p_name, '')) = '' or length(v_phone) <> 10 or p_pin !~ '^\d{4}$' then raise exception 'Add a name, 10-digit phone and 4-digit PIN'; end if;
+  select fair_id into v_fair from stalls where id = app_stall();
+  if exists (select 1 from stalls where fair_id = v_fair and phone = v_phone)
+     or exists (select 1 from helpers h join stalls x on x.id = h.stall_id where x.fair_id = v_fair and h.phone = v_phone) then
+    raise exception 'That phone is already a stall or helper login';
+  end if;
+  insert into helpers (stall_id, name, phone, pin_hash) values (app_stall(), trim(p_name), v_phone, crypt(p_pin, gen_salt('bf'))) returning id into v_id;
+  return v_id;
+end $$;
+
+revoke all on function pin_check, join_stall from public, anon, authenticated;
+grant execute on function pin_check, join_stall to service_role;
+revoke all on function change_pin, add_helper from public, anon;
+
+-- Photos: public bucket, owners write only under their own stall folder: photos/<stall_id>/<file>.webp
+do $$ begin
+  if exists (select 1 from pg_namespace where nspname = 'storage') then
+    insert into storage.buckets (id, name, public) values ('photos', 'photos', true) on conflict (id) do nothing;
+    execute $p$create policy photos_owner_insert on storage.objects for insert to authenticated
+      with check (bucket_id = 'photos' and app_role() = 'owner' and (storage.foldername(name))[1] = app_stall()::text)$p$;
+    execute $p$create policy photos_owner_delete on storage.objects for delete to authenticated
+      using (bucket_id = 'photos' and app_role() = 'owner' and (storage.foldername(name))[1] = app_stall()::text)$p$;
+  end if;
+end $$;
 
 -- ───────────────────────── realtime ─────────────────────────
 -- Realtime respects RLS: `stalls` changes reach only owners/admin. Customers can't read `stalls`, so the
