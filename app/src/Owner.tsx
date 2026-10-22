@@ -2,11 +2,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import {
-  DEFAULT_TEMPLATES, PAID, TAGS, digits, fetchAll, fill, friendly, lineLabel, menuLabel, photoUrl, qrSvg, shrinkPhoto, staff, stallAuth,
+  DEFAULT_TEMPLATES, PAID, TAGS, digits, disablePush, fetchAll, useFair, fill, friendly, lineLabel, menuLabel, photoUrl, qrSvg, shrinkPhoto, staff, stallAuth,
   stallUrl, statusInfo, time, upiLink, wa,
   type Combo, type Fair, type Item, type Order, type Stall, type Templates,
 } from './lib';
 import { receiptText } from './Customer';
+import { Offline, PushButton } from './ui';
 
 type Closeout = { upi_actual: string; cash_actual: string; note: string; closed: boolean; closed_at?: string };
 type OwnStall = Stall & { phone: string; pin_must_change: boolean; closeout: Closeout | null };
@@ -29,16 +30,15 @@ const Title = ({ children }: { children: ReactNode }) => <h2 className="display"
 // ───────────────────────── shell: fair + staff session ─────────────────────────
 export default function Owner() {
   const { slug = '' } = useParams();
-  const [fair, setFair] = useState<Fair | null | undefined>(undefined);
+  const { fair, offline } = useFair(staff, slug);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
-  useEffect(() => { staff.from('fairs').select('id,name,slug,school_upi,payment_check').eq('slug', slug).maybeSingle().then(({ data }) => setFair(data)); }, [slug]);
   useEffect(() => {
     staff.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = staff.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
   if (fair === null) return <div className="phone"><Page><Title>Fair not found</Title><p style={{ padding: '0 var(--space-2)' }}>Check the link from the school admin.</p></Page></div>;
-  if (!fair || session === undefined) return <div className="phone" />;
+  if (!fair || session === undefined) return <div className="phone">{offline && <Offline />}</div>;
   const meta = session?.user.app_metadata || {};
   const mine = session && meta.fair_id === fair.id && (meta.app_role === 'owner' || meta.app_role === 'helper');
   return <div className="phone">{mine ? <StaffApp fair={fair} session={session!} /> : <Login fair={fair} />}</div>;
@@ -124,7 +124,7 @@ function StaffApp({ fair, session }: { fair: Fair; session: Session }) {
   const toast = useCallback((title: string, msg: string) => {
     clearTimeout(timer.current); setNote({ title, msg }); timer.current = window.setTimeout(() => setNote(null), 4500);
   }, []);
-  const logout = () => { store.set(NAME_KEY, ''); staff.auth.signOut(); };
+  const logout = async () => { store.set(NAME_KEY, ''); await disablePush(staff); staff.auth.signOut(); };
 
   const loadStall = useCallback(async () => {
     const { data } = await staff.from('stalls').select(STALL_COLS).eq('id', stallId).maybeSingle();
@@ -231,6 +231,7 @@ function Queue() {
         <span style={{ fontSize: 14 }}>{stall.name}</span>
         <h2 className="display" style={{ fontSize: 30 }}>Orders</h2>
       </div>
+      <PushButton db={staff} label="Get new-order alerts on this phone" hint="A notification with every new order, even when the app is closed or the screen is off." />
       {!isOwner && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-4)', borderRadius: 999, background: 'var(--color-accent-2-100)' }}>
           <span style={{ fontSize: 13, flex: 1 }}>Helper login{helperName ? <> · <strong>{helperName}</strong></> : ''} · orders &amp; cash only</span>

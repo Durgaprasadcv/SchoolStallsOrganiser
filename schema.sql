@@ -212,9 +212,10 @@ create table invites (
 create table push_subscriptions (
   id         uuid primary key default gen_random_uuid(),
   subject    text not null,                           -- 'stall:<id>' | 'customer:<id>'
-  endpoint   text not null unique,
+  endpoint   text not null,
   keys       jsonb not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique (endpoint, subject)                          -- one phone can be a customer and a stall owner
 );
 
 -- keep updated_at fresh
@@ -467,7 +468,7 @@ create policy tmpl_admin   on templates for all using (is_admin_of(fair_id)) wit
 create policy cause_admin  on causes    for all using (is_admin_of(fair_id)) with check (is_admin_of(fair_id));
 create policy fair_admin   on fairs     for update using (is_admin_of(id));
 create policy invite_admin on invites   for all using (is_admin_of(fair_id)) with check (is_admin_of(fair_id));
--- push_subscriptions: written by the `push-subscribe` Edge Function with the service role; no client policies.
+-- push_subscriptions: no client policies; the app writes through save_push() / drop_push() below.
 
 -- hide phone numbers on notices from non-admins: clients read via this view
 create or replace view notices_public as select id, fair_id, kind, text, by_name, open, created_at from notices where open;
@@ -587,6 +588,27 @@ begin
   update stalls set pin_hash = crypt('0000', gen_salt('bf')), pin_must_change = true, failed_logins = 0, locked_until = null where id = p_stall;
 end $$;
 
+-- Web Push: the app saves the browser's subscription; the subject comes from the caller's session, never from the client.
+create or replace function save_push(p_sub jsonb) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_subject text;
+begin
+  v_subject := case
+    when app_role() in ('owner', 'helper') and is_staff_of(app_stall()) then 'stall:' || app_stall()
+    when exists (select 1 from customers where id = auth.uid()) then 'customer:' || auth.uid() end;
+  if v_subject is null then raise exception 'not allowed'; end if;
+  if coalesce(p_sub ->> 'endpoint', '') !~ '^https://' or p_sub -> 'keys' ->> 'p256dh' is null then raise exception 'bad subscription'; end if;
+  insert into push_subscriptions (subject, endpoint, keys) values (v_subject, p_sub ->> 'endpoint', p_sub -> 'keys')
+  on conflict (endpoint, subject) do update set keys = excluded.keys;
+end $$;
+-- on logout: stop this phone getting the stall's (or this customer's) alerts
+create or replace function drop_push(p_endpoint text) returns void
+language sql security definer set search_path = public as $$
+  delete from push_subscriptions where endpoint = p_endpoint
+    and subject in ('stall:' || app_stall(), 'customer:' || auth.uid());
+$$;
+revoke all on function save_push, drop_push from public, anon;
+
 revoke all on function pin_check, join_stall from public, anon, authenticated;
 grant execute on function pin_check, join_stall to service_role;
 revoke all on function change_pin, add_helper from public, anon;
@@ -595,6 +617,8 @@ revoke all on function change_pin, add_helper from public, anon;
 do $$ begin
   if exists (select 1 from pg_namespace where nspname = 'storage') then
     insert into storage.buckets (id, name, public) values ('photos', 'photos', true) on conflict (id) do nothing;
+    -- nightly CSV backups: private, written by the `nightly-backup` Edge Function (service role), no client policies
+    insert into storage.buckets (id, name, public) values ('backups', 'backups', false) on conflict (id) do nothing;
     execute $p$create policy photos_owner_insert on storage.objects for insert to authenticated
       with check (bucket_id = 'photos' and app_role() = 'owner' and (storage.foldername(name))[1] = app_stall()::text)$p$;
     execute $p$create policy photos_owner_delete on storage.objects for delete to authenticated
@@ -614,6 +638,7 @@ create or replace function purge_pii() returns void language sql security define
   update orders    set customer_phone = null where created_at < now() - interval '30 days' and customer_phone is not null;
   update notices   set by_phone = null       where created_at < now() - interval '30 days';
   delete from customers                       where created_at < now() - interval '30 days';
+  delete from push_subscriptions              where subject like 'customer:%' and created_at < now() - interval '30 days';
 $$;
 revoke all on function purge_pii from public, anon, authenticated;
 
@@ -676,7 +701,7 @@ end $$;
 -- Done:
 -- stall-auth     supabase/functions/stall-auth — POST {action:'login'|'join', ...} → pin_check / join_stall above,
 --                then a real Supabase session for the stall/helper (claims in app_metadata). PIN reset = admin_reset_pin().
--- Still to write (outline):
--- push-subscribe POST {subject, subscription} → upsert push_subscriptions (service role)
--- push-notify    DB webhook on orders INSERT (→ 'stall:<id>') and UPDATE status→ready (→ 'customer:<id>'); sends Web Push (VAPID)
--- nightly-backup cron 21:00 IST → CSV of orders + stall_totals to storage bucket `backups/`, email signed URL to admin
+-- push-notify    supabase/functions/push-notify — Database Webhook on orders INSERT (→ 'stall:<id>') and
+--                UPDATE status→ready (→ 'customer:<id>'); sends Web Push (VAPID) to push_subscriptions.
+-- nightly-backup supabase/functions/nightly-backup — Cron 21:00 IST → orders + stall summary CSVs to the private
+--                `backups` bucket, emails the admin signed links (if RESEND_API_KEY + ADMIN_EMAIL are set).

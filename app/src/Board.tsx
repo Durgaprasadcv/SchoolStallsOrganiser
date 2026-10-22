@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { appUrl, qrSvg, supabase, type Fair, type Notice, type Stall } from './lib';
+import { appUrl, qrSvg, supabase, useFair, type Notice, type Stall } from './lib';
+import { Offline } from './ui';
 
 type Tok = { stall_id: string; token: string; status: string; created_at: string };
 
 // TV / laptop by the stalls. Runs signed out: reads only the phone-free views, polled (Realtime can't stream views).
 export default function Board() {
   const { slug = '' } = useParams();
-  const [fair, setFair] = useState<Fair | null>(null);
+  const { fair, offline } = useFair(supabase, slug);
+  const [stale, setStale] = useState(false);
   const [stalls, setStalls] = useState<Stall[]>([]), [toks, setToks] = useState<Tok[]>([]), [notices, setNotices] = useState<Notice[]>([]);
 
-  useEffect(() => { supabase.from('fairs').select('id,name,slug,school_upi,payment_check').eq('slug', slug).maybeSingle().then(({ data }) => setFair(data)); }, [slug]);
   useEffect(() => {
     if (!fair) return;
     const load = async () => {
@@ -21,11 +22,12 @@ export default function Board() {
       ]);
       // keep the last good data on a failed poll (weak school Wi-Fi)
       if (s.data) setStalls(s.data); if (t.data) setToks(t.data); if (n.data) setNotices(n.data);
+      setStale(!!(s.error || t.error || n.error));
     };
     load(); const t = setInterval(load, 5000); return () => clearInterval(t);
   }, [fair]);
 
-  if (!fair) return null;
+  if (!fair) return offline ? <Offline /> : null;
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg)', padding: 'var(--space-6)' }}>
       <div style={{ background: 'var(--color-accent-2-800)', color: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-8)', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', minHeight: 'calc(100dvh - 2 * var(--space-6))' }}>
@@ -41,6 +43,7 @@ export default function Board() {
             {notices.map(n => <div key={n.id} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', padding: 'var(--space-2) var(--space-4)', borderRadius: 999, background: 'var(--color-accent-2-700)', fontSize: 17 }}><strong>{n.kind}:</strong><span>{n.text}</span></div>)}
           </div>
         )}
+        {stale && <Offline />}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 'var(--space-6)' }}>
           {stalls.map(st => {
             const mine = toks.filter(t => t.stall_id === st.id), ready = mine.filter(t => t.status === 'ready'), prep = mine.filter(t => t.status !== 'ready').map(t => t.token);

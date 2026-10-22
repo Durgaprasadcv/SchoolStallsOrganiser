@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
 import qrcode from 'qrcode-generator';
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL, KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -126,4 +127,45 @@ export const friendly = (e: { message?: string } | null) => {
   if (m.includes('paused')) return 'This stall is back soon — ordering is paused for a few minutes.';
   if (m.includes('Failed to fetch') || m.includes('NetworkError')) return 'No connection — check your internet and try again.';
   return m || 'Something went wrong — please try again.';
+};
+
+// ───────── fair loading that survives weak school Wi-Fi ─────────
+// A network error is not "fair not found": keep the screen up and retry every 5 s.
+export const useFair = (db: SupabaseClient, slug: string) => {
+  const [fair, setFair] = useState<Fair | null | undefined>(undefined), [offline, setOffline] = useState(false);
+  useEffect(() => {
+    let stop = false, t = 0;
+    const load = async () => {
+      const { data, error } = await db.from('fairs').select('id,name,slug,school_upi,payment_check').eq('slug', slug).maybeSingle();
+      if (stop) return;
+      if (error) { setOffline(true); t = window.setTimeout(load, 5000); return; }
+      setOffline(false); setFair(data as Fair | null);
+    };
+    load();
+    return () => { stop = true; clearTimeout(t); };
+  }, [db, slug]);
+  return { fair, setFair, offline };
+};
+
+// ───────── Web Push ─────────
+const VAPID = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+// iPhone: only works once Stall Day is added to the Home Screen (iOS 16.4+); there PushManager exists, elsewhere it doesn't.
+export const pushSupported = () => !!VAPID && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const b64ToBytes = (b64: string) => Uint8Array.from(atob((b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const currentSub = async () => (await navigator.serviceWorker.ready).pushManager.getSubscription();
+// Returns null on success, or a message to show.
+export const enablePush = async (db: SupabaseClient, ask = true): Promise<string | null> => {
+  if (!pushSupported()) return 'This browser can\'t show alerts.';
+  if (Notification.permission === 'denied') return 'Alerts are blocked for this site in your browser settings.';
+  if (Notification.permission !== 'granted' && (!ask || (await Notification.requestPermission()) !== 'granted')) return ask ? 'Alerts not allowed.' : 'off';
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID!) }));
+    const { error } = await db.rpc('save_push', { p_sub: sub.toJSON() });
+    return error ? friendly(error) : null;
+  } catch { return 'Couldn\'t turn on alerts on this phone — you\'ll still see them while the app is open.'; }
+};
+// On logout: this phone stops getting that login's alerts (the browser subscription stays for any other login).
+export const disablePush = async (db: SupabaseClient) => {
+  try { const sub = pushSupported() && (await currentSub()); if (sub) await db.rpc('drop_push', { p_endpoint: sub.endpoint }); } catch { /* best effort */ }
 };

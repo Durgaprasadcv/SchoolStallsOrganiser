@@ -1,8 +1,9 @@
+import { Offline, PushButton } from './ui';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ALLERGENS, DEFAULT_TEMPLATES, TAGS, UPI_APPS, cutLine, digits, fill, friendly, lineLabel, menuLabel, photoUrl,
-  statusInfo, supabase, time, upiLink, wa,
+  disablePush, statusInfo, supabase, time, upiLink, useFair, wa,
   type Combo, type Fair, type Item, type Notice, type Order, type Stall, type Templates,
 } from './lib';
 
@@ -28,8 +29,7 @@ export const receiptText = (o: Order, st: Stall, cause: string, tpl: Templates) 
 // ───────────────────────── shell: loads the fair, the customer and their orders ─────────────────────────
 export default function Customer() {
   const { slug = '' } = useParams();
-  const [fair, setFair] = useState<Fair | null>(null);
-  const [missing, setMissing] = useState(false);
+  const { fair, offline } = useFair(supabase, slug), missing = fair === null;
   const [stalls, setStalls] = useState<Stall[]>([]);
   const [causes, setCauses] = useState<Record<string, string>>({});
   const [tpl, setTpl] = useState<Templates>(DEFAULT_TEMPLATES);
@@ -45,10 +45,9 @@ export default function Customer() {
   }, []);
 
   useEffect(() => {
+    if (!fair) return;
+    const f = fair;
     (async () => {
-      const { data: f } = await supabase.from('fairs').select('id,name,slug,school_upi,payment_check').eq('slug', slug).maybeSingle();
-      if (!f) return setMissing(true);
-      setFair(f);
       const [{ data: cs }, { data: ts }] = await Promise.all([
         supabase.from('causes').select('id,name').eq('fair_id', f.id),
         supabase.from('templates').select('key,body').eq('fair_id', f.id),
@@ -59,7 +58,7 @@ export default function Customer() {
       const { data: c } = session ? await supabase.from('customers').select('id,name,phone').eq('id', session.user.id).maybeSingle() : { data: null };
       setMe(c);
     })();
-  }, [slug]);
+  }, [fair]);
 
   // Stalls (incl. paused state) — customers can't get Realtime on `stalls`, so poll + refresh on focus.
   useEffect(() => {
@@ -120,10 +119,10 @@ export default function Customer() {
     setMe({ id: row.id, name: row.name, phone: row.phone });
     return null;
   };
-  const logout = async () => { await supabase.auth.signOut(); setMe(null); setCart(EMPTY_CART); setMyOrders([]); };
+  const logout = async () => { await disablePush(supabase); await supabase.auth.signOut(); setMe(null); setCart(EMPTY_CART); setMyOrders([]); };
 
   if (missing) return <div className="phone" style={{ padding: 'var(--space-8) var(--space-6)' }}><h2 className="display">Fair not found</h2><p>Check the link or scan the QR code again.</p></div>;
-  if (!fair || me === undefined) return <div className="phone" />;
+  if (!fair || me === undefined) return <div className="phone">{offline && <Offline />}</div>;
 
   const ctx: Ctx = { fair, stalls, byId, causeOf: s => (s.cause_id && causes[s.cause_id]) || 'School fund', tpl, previews, me, enter, logout, cart, setCart, toast, myOrders, reloadOrders };
   return (
@@ -559,6 +558,7 @@ function Success() {
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 72, lineHeight: 1 }}>{o.token}</span>
         <span style={{ fontSize: 14 }} aria-live="polite">{aheadText}</span>
       </div>
+      {['verify', 'pending'].includes(o.status) && <PushButton db={supabase} label="Ping me when it's ready" hint="A notification on this phone when the stall marks your order ready — even if you close this page." />}
       <div className="stack" style={{ gap: 'var(--space-2)', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)' }}>
         {(o.order_lines || []).map(l => <div key={l.id} className="row" style={{ fontSize: 15 }}><span>{l.qty} × {lineLabel(l)}</span><span>₹{l.qty * l.price}</span></div>)}
         {o.donation > 0 && <div className="row" style={{ fontSize: 15 }}><span>Extra for the school</span><span>₹{o.donation}</span></div>}

@@ -1,7 +1,8 @@
 # Handoff: Stall Day — school fair stall app
 
-> **Status:** the real app is built in [`app/`](app/README.md) (React + Vite + Supabase) — customer app, token board, stall owner/helper app and admin panel.
-> Setup, deploy and run steps are in **[app/README.md](app/README.md)**. Still to do: Web Push, the 9 pm backup and PWA offline (sections 2, 5 and 6 below).
+> **Status:** the real app is built in [`app/`](app/README.md) (React + Vite + Supabase) — customer app, token board, stall owner/helper app,
+> admin panel, Web Push, the 9 pm backup and offline start. Setup, deploy and run steps are in **[app/README.md](app/README.md)**.
+> Not built: retrying taps made while offline (they show an error and can be tapped again).
 > This file is the original design brief; where it differs from what was built, the notes below say so.
 
 ## Overview
@@ -112,7 +113,9 @@ Run a 30-minute rehearsal with 2–3 stalls, ~10 parents:
 - [ ] Helper login can't open Items / Sales / Stall.
 - [ ] Pause orders → customers can browse but not order.
 - [ ] End-of-day match-up + settle-up + Excel export all add up.
-- [ ] Weak school Wi-Fi: app still loads (PWA cache) and retries failed writes.
+- [ ] Weak school Wi-Fi: app still loads (PWA cache) and recovers when the signal is back; a failed tap shows an error and can be retried.
+- [ ] Push: owner taps "Get new-order alerts", a test order buzzes their phone with the screen off; customer gets "Your order is ready".
+- [ ] Backup: after 21:00 IST the day's CSVs are in Storage → `backups` (and in the admin's inbox if Resend is set up).
 
 ---
 

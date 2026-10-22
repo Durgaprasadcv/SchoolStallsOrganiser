@@ -1,0 +1,15 @@
+{
+  "name": "Stall Day",
+  "short_name": "Stall Day",
+  "description": "Order, pay by UPI and get your token at the school fair.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5ead8",
+  "theme_color": "#f5ead8",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
+import { Offline } from './ui';
 import {
-  DEFAULT_TEMPLATES, PAID, adminDb as db, appUrl, digits, downloadCsv, fetchAll, fill, friendly, lineLabel, time, wa,
+  DEFAULT_TEMPLATES, PAID, adminDb as db, useFair, appUrl, digits, downloadCsv, fetchAll, fill, friendly, lineLabel, time, wa,
   type Fair, type Notice, type Order, type Stall, type Templates,
 } from './lib';
 
@@ -21,16 +22,15 @@ const sum = (os: { total?: number; amount?: number }[]) => os.reduce((a, o) => a
 
 export default function Admin() {
   const { slug = '' } = useParams();
-  const [fair, setFair] = useState<Fair | null | undefined>(undefined);
+  const { fair, setFair, offline } = useFair(db, slug);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
-  useEffect(() => { db.from('fairs').select('id,name,slug,school_upi,payment_check').eq('slug', slug).maybeSingle().then(({ data }) => setFair(data)); }, [slug]);
   useEffect(() => {
     db.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = db.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
   if (fair === null) return <Shell><Card><H3>Fair not found</H3></Card></Shell>;
-  if (!fair || session === undefined) return <Shell />;
+  if (!fair || session === undefined) return <Shell>{offline && <Offline />}</Shell>;
   const m = session?.user.app_metadata || {}, isAdmin = !!session && m.app_role === 'admin' && m.fair_id === fair.id;
   return isAdmin ? <Panel fair={fair} setFair={setFair} /> : <Shell><Login fair={fair} wrongAccount={!!session} /></Shell>;
 }
