@@ -5,6 +5,26 @@ const URL_ = import.meta.env.VITE_SUPABASE_URL, KEY = import.meta.env.VITE_SUPAB
 export const supabase = createClient(URL_, KEY);
 // Stall owners/helpers get their own session store, so a parent who also runs a stall keeps both logins on one phone.
 export const staff = createClient(URL_, KEY, { auth: { storageKey: 'stallday-staff' } });
+export const adminDb = createClient(URL_, KEY, { auth: { storageKey: 'stallday-admin' } });
+
+// Supabase returns at most 1,000 rows per request; a busy fair passes that, so page through.
+export const fetchAll = async <T,>(q: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> => {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await q(from, from + 999);
+    if (error || !data) throw error || new Error('no data');
+    out.push(...data);
+    if (data.length < 1000) return out;
+  }
+};
+
+// Excel opens UTF-8 CSV correctly (₹, names) only with a BOM.
+export const downloadCsv = (name: string, rows: (string | number | null | undefined)[][]) => {
+  const esc = (v: unknown) => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+};
 
 type StallAuth = { access_token: string; refresh_token: string; kind: 'owner' | 'helper'; must_change: boolean; joined: boolean; error?: string };
 export const stallAuth = async (body: Record<string, string>): Promise<StallAuth> => {
@@ -52,7 +72,7 @@ export const DEFAULT_TEMPLATES: Templates = {
   receipt: 'Stall Day receipt 🧾\n{stall} · Token {token}\n{items}\nTotal ₹{total} ({paidBy})\n₹{schoolShare} goes to {cause}. Thank you!',
   ready: 'Hi {name}! Your order {token} at {stall} is ready — please collect it. 😊',
   reminder: 'Hi {owner}, thank you for running {stall}! The school\'s share is ₹{due}. Please pay to {schoolUpi} when you can. 🙏',
-  thankyou: 'Thank you {owner}! {stall} raised ₹{raised} for {cause} today across {orders} orders. You made the fair special. — Greenfield PTA',
+  thankyou: 'Thank you {owner}! {stall} raised ₹{raised} for {cause} today across {orders} orders. You made the fair special. — Bharath PTA',
 };
 
 // ───────── helpers ─────────

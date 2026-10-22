@@ -1,5 +1,9 @@
 # Handoff: Stall Day — school fair stall app
 
+> **Status:** the real app is built in [`app/`](app/README.md) (React + Vite + Supabase) — customer app, token board, stall owner/helper app and admin panel.
+> Setup, deploy and run steps are in **[app/README.md](app/README.md)**. Still to do: Web Push, the 9 pm backup and PWA offline (sections 2, 5 and 6 below).
+> This file is the original design brief; where it differs from what was built, the notes below say so.
+
 ## Overview
 A web app for a school charity fair. Parents run stalls (food, clothes, crafts, anything). Customers scan a stall QR, order, pay the owner directly by UPI, get a token, and get pinged when it's ready. Owners manage orders, stock, cash sales and helpers. A school admin sees live totals, sets the school's share per stall, collects settle-ups, posts lost & found, and exports everything to Excel.
 
@@ -8,7 +12,7 @@ A web app for a school charity fair. Parents run stalls (food, clothes, crafts, 
 ## About the design files
 `Stall App.dc.html` is a **design reference built in HTML** — a working, clickable prototype showing intended look and behaviour with all state held in memory. Do **not** ship it. Recreate it as a real app (recommended stack below). Open it in a browser (keep `support.js` and `_ds/` beside it) to click through every flow; the customer phone, owner phone, admin panel and token board are all live on one page and talk to each other.
 
-Demo logins inside the prototype: owner `98450 11111` / PIN `1111` (also 22222/2222, 33333/3333), helper `98450 44444` / `4444`, admin password `fair2024`, stall invite code `FAIR24`.
+Demo logins inside the prototype (the real app's demo stalls use the same phones/PINs; its admin is a Supabase user — see app/README): owner `98450 11111` / PIN `1111` (also 22222/2222, 33333/3333), helper `98450 44444` / `4444`, admin password `fair2024`, stall invite code `FAIR24`.
 
 ## Fidelity
 **High-fidelity.** Colours, type, radii, spacing and copy are final. Recreate the UI closely, mobile-first (customer + owner screens are designed at 360px wide).
@@ -35,7 +39,7 @@ Alternative: Firebase (Firestore + Hosting + FCM) works equally well if the deve
 ## Before going live — the six must-dos
 
 ### 1. Save data online
-Supabase tables (Postgres). Suggested schema:
+Supabase tables (Postgres). **Built:** the real schema is [`schema.sql`](schema.sql) — it adds `fairs.slug`, `fairs.payment_check`, PIN lockout columns, frozen `orders.school_share` and more. The sketch below was the starting point:
 
 ```sql
 fairs(id, name, school_upi, invite_code, admin_email, created_at)
@@ -72,8 +76,8 @@ templates(fair_id, key 'invite'|'receipt'|'ready'|'reminder'|'thankyou', body)
 
 ### 3. Hosting
 - One deployed site, e.g. `https://<fair>.pages.dev` or a custom domain.
-- Routes all start with the fair's `slug` (`fairs.slug`, e.g. `greenfield`): `/:slug` (all stalls), `/:slug/s/:stallId` (stall menu — this is what each stall QR encodes), `/:slug/owner`, `/:slug/admin`, `/:slug/board`. This matches the prototype's `APP_URL + '/s/' + id`.
-- Replace the placeholder `https://stallday.app/greenfield` (constant `APP_URL` in the prototype) everywhere: QR codes, invite message, price list.
+- Routes all start with the fair's `slug` (`fairs.slug`, e.g. `schoolfair`): `/:slug` (all stalls), `/:slug/s/:stallId` (stall menu — this is what each stall QR encodes), `/:slug/owner`, `/:slug/admin`, `/:slug/board`. This matches the prototype's `APP_URL + '/s/' + id`.
+- The prototype's placeholder `APP_URL` (`https://stallday.app/greenfield`) is gone: the app builds QR codes, invite links and the price list from the address it's served on.
 
 ### 4. Privacy & security
 - **Logins (free, no OTP):**
@@ -81,9 +85,9 @@ templates(fair_id, key 'invite'|'receipt'|'ready'|'reminder'|'thankyou', body)
   - Stall owner / helper: WhatsApp number + 4-digit PIN. Store a bcrypt/argon hash only. Rate-limit (5 tries → 10-minute lockout). Admin can reset to `0000`, which forces a change on next login.
   - New stalls join with the admin's invite code; code can be regenerated.
   - Admin: Supabase Auth email + password (free).
-  - Issue a signed session (Supabase custom JWT via Edge Function) carrying `role` and `stall_id`.
+  - **Built:** the `stall-auth` Edge Function checks the PIN in Postgres and returns a real Supabase session (one hidden auth user per stall/helper, `app_role` + `stall_id` in `app_metadata`) — no hand-signed JWTs, refresh works normally.
 - **Row Level Security:**
-  - Customers can read stalls/items/combos/open notices, insert their own orders, and read only their own orders.
+  - Customers can read stalls (via the `stalls_public` view, no phone/PIN columns), items, combos and open notices (via `notices_public`, no phone numbers), insert their own orders, and read only their own orders.
   - Owner reads/writes only their stall's rows; sees customer name + phone only on their own orders.
   - Helper: same stall, but **only** orders + cash sales; no items, sales totals, settings.
   - Admin reads everything for the fair.
@@ -99,7 +103,7 @@ templates(fair_id, key 'invite'|'receipt'|'ready'|'reminder'|'thankyou', body)
 **Supabase free projects pause after 7 days without use** (data is kept). 1–2 days before every fair and before the rehearsal: log in to the Supabase dashboard → project → **Resume**. Then open the app once to confirm it loads.
 
 Run a 30-minute rehearsal with 2–3 stalls, ~10 parents:
-- [ ] Supabase project resumed and app loads.
+- [ ] Supabase project resumed and app loads; `stall-auth` function deployed; admin can log in at `/<slug>/admin`.
 - [ ] Scan each printed QR on Android + iPhone; menu opens.
 - [ ] UPI deep link opens GPay, PhonePe, Paytm with amount + UPI ID filled.
 - [ ] Owner confirms payment → Mark ready → customer gets push / banner.
@@ -139,8 +143,10 @@ Run a 30-minute rehearsal with 2–3 stalls, ~10 parents:
 **Token board (TV, `/:slug/board`)** — "Ready for pickup", fair QR, open notices as pills, per-stall ready tokens (large) and preparing list.
 
 ## Key business rules
-- Payment check default: **owner confirms** UPI ("verify" status) before preparing. Configurable per fair.
+- Payment check default: **owner confirms** UPI ("verify" status) before preparing. Configurable per fair (`fairs.payment_check`; no admin screen for it yet — change it in the Supabase table editor).
+- **Built:** picking a UPI app places the order first (stock reserved, real token in the UPI note), then the customer taps "Open Google Pay". Backing out cancels the order and returns the stock.
 - School share per order = `round((total − donation) × cut_pct / 100) + donation`. Direct donations count 100% to school.
+- **Built:** the share is frozen on each order when it's placed, so an admin's school % change applies to new orders only (the prototype recalculated past orders).
 - Sales totals count statuses pending, ready, done only (not verify, hold, cancelled).
 - Settle-up due = school share − settlements received.
 - End-of-day difference shown separately for UPI and cash.
@@ -158,7 +164,9 @@ Run a 30-minute rehearsal with 2–3 stalls, ~10 parents:
 No bundled images. Stall and item photos are uploaded by owners. QR codes are generated at runtime.
 
 ## Files
-- `schema.sql` — Supabase migration: tables, enums, RLS policies, `place_order` / `set_order_status` (atomic tokens + stock), reporting views, realtime, PII purge, keep-alive `ping()`, seed data matching the prototype, and an outline of the Edge Functions to write.
+- `app/` — the real app (see [app/README.md](app/README.md)).
+- `supabase/functions/stall-auth/` — Edge Function for stall owner / helper PIN login and joining with the invite code.
+- `schema.sql` — Supabase migration: tables, enums, RLS policies, `place_order` / `set_order_status` (atomic tokens + stock), PIN login functions, reporting views, realtime, photo storage policies, PII purge, keep-alive `ping()`, seed data matching the prototype, and an outline of the Edge Functions still to write.
 - `Stall Day preview.html` — single self-contained file of the prototype; double-click to open, works offline.
 - `screenshots/` — key screens and states.
 - `Stall App.dc.html` — the full prototype (template + logic class at the bottom; the logic holds the data model, seed data, and every rule above).

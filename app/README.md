@@ -3,12 +3,13 @@
 React + Vite + TypeScript on Supabase. Built from the prototype in `../Stall App.dc.html`; schema in `../schema.sql`.
 
 **Done:** customer app (`/:slug`, `/:slug/s/:stallId`, cart, UPI pay, token, My orders, Lost & found, donate), token board (`/:slug/board`),
-stall owner / helper app (`/:slug/owner`: PIN login, join with invite code, orders, items & combos, cash sales, sales & settle-up, end-of-day match-up, stall setup, helpers).
-**Next:** admin (`/:slug/admin`), Web Push, nightly backup, PWA offline.
+stall owner / helper app (`/:slug/owner`: PIN login, join with invite code, orders, items & combos, cash sales, sales & settle-up, end-of-day match-up, stall setup, helpers),
+admin panel (`/:slug/admin`: live totals, Excel exports, school % per stall, causes, settle-ups, WhatsApp templates, Lost & found, invite code, invites, PIN resets).
+**Next:** Web Push, nightly backup, PWA offline.
 
 ## One-time Supabase setup (free tier)
 1. Create a project at supabase.com (region: Mumbai).
-2. SQL editor → paste all of `../schema.sql` → Run. It creates the Greenfield demo fair, so `/greenfield` works straight away.
+2. SQL editor → paste all of `../schema.sql` → Run. It creates the demo fair (slug `schoolfair`), so `/schoolfair` works straight away.
 3. Authentication → Sign In / Providers → turn on **Allow anonymous sign-ins** (customers sign in without a password).
 4. Authentication → Rate Limits → raise **anonymous sign-ins** from 30/hour to ~1000/hour. The whole fair shares the school Wi-Fi IP, so the default would lock out parents after the 30th phone.
 5. Project settings → API → copy the URL and the `anon` key into `app/.env.local` (see `.env.example`).
@@ -21,12 +22,18 @@ stall owner / helper app (`/:slug/owner`: PIN login, join with invite code, orde
    ```
    `STAFF_EMAIL` is any real inbox: each stall/helper login becomes a hidden auth user `you+owner-<id>@gmail.com`.
    Nothing is ever sent there — the function makes the sign-in link and uses it itself.
+7. Admin login: Authentication → Users → **Add user** (email + password, tick *Auto confirm*), then in the SQL editor:
+   ```sql
+   update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('app_role', 'admin',
+     'fair_id', (select id from fairs where slug = 'schoolfair')) where email = 'you@example.com';
+   ```
+   Sign in at `/schoolfair/admin`. Change the demo invite code (`FAIR24`) there before sharing the link.
 
 ## Run
 ```
 cd app
 npm install
-npm run dev        # http://localhost:5173/greenfield
+npm run dev        # http://localhost:5173/schoolfair
 ```
 
 ## Deploy (Cloudflare Pages, free)

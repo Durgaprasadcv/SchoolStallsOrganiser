@@ -2,7 +2,9 @@
 -- Run in the Supabase SQL editor or as the first migration.
 --
 -- Auth model
---   admin    : Supabase Auth email/password; set auth.users.raw_app_meta_data = {"app_role":"admin","fair_id":"<uuid>"}
+--   admin    : Supabase Auth email/password. Create the user in Dashboard → Authentication → Add user, then run:
+--              update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('app_role', 'admin',
+--                'fair_id', (select id from fairs where slug = 'schoolfair')) where email = 'you@example.com';
 --   owner    : real Supabase Auth user (id = stall id) created by the `stall-auth` Edge Function after pin_check();
 --              app_metadata {app_role:"owner", fair_id, stall_id}. Session minted via magic-link token, never emailed.
 --   helper   : same, id = helper id, app_metadata {app_role:"helper", fair_id, stall_id, helper_id}
@@ -577,6 +579,14 @@ begin
   return v_id;
 end $$;
 
+-- Admin: reset a stall's PIN to 0000 (owner must pick a new one at next login) and lift any lockout
+create or replace function admin_reset_pin(p_stall uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from stalls where id = p_stall and is_admin_of(fair_id)) then raise exception 'not allowed'; end if;
+  update stalls set pin_hash = crypt('0000', gen_salt('bf')), pin_must_change = true, failed_logins = 0, locked_until = null where id = p_stall;
+end $$;
+
 revoke all on function pin_check, join_stall from public, anon, authenticated;
 grant execute on function pin_check, join_stall to service_role;
 revoke all on function change_pin, add_helper from public, anon;
@@ -616,7 +626,7 @@ do $$
 declare f uuid; c_lib uuid; c_sport uuid; c_garden uuid; s1 uuid; s2 uuid; s3 uuid;
         a1 uuid; a4 uuid;
 begin
-  insert into fairs (name, slug, school_upi, invite_code) values ('Greenfield School Fair', 'greenfield', 'pta.greenfield@oksbi', 'FAIR24') returning id into f;
+  insert into fairs (name, slug, school_upi, invite_code) values ('School Fair', 'schoolfair', 'pta.fair@oksbi', 'FAIR24') returning id into f;
   insert into causes (fair_id, name) values (f, 'Library books') returning id into c_lib;
   insert into causes (fair_id, name) values (f, 'Sports day kit') returning id into c_sport;
   insert into causes (fair_id, name) values (f, 'School garden') returning id into c_garden;
@@ -659,14 +669,14 @@ begin
     (f, 'receipt',  E'Stall Day receipt 🧾\n{stall} · Token {token}\n{items}\nTotal ₹{total} ({paidBy})\n₹{schoolShare} goes to {cause}. Thank you!'),
     (f, 'ready',    'Hi {name}! Your order {token} at {stall} is ready — please collect it. 😊'),
     (f, 'reminder', 'Hi {owner}, thank you for running {stall}! The school''s share is ₹{due}. Please pay to {schoolUpi} when you can. 🙏'),
-    (f, 'thankyou', 'Thank you {owner}! {stall} raised ₹{raised} for {cause} today across {orders} orders. You made the fair special. — Greenfield PTA');
+    (f, 'thankyou', 'Thank you {owner}! {stall} raised ₹{raised} for {cause} today across {orders} orders. You made the fair special. — Bharath PTA');
 end $$;
 
--- ───────────────────────── Edge Functions to write (outline) ─────────────────────────
--- pin-login      POST {phone, pin} → checks stalls / helpers with crypt(); 5 fails → locked_until = now()+10min;
---                signs JWT with SUPABASE_JWT_SECRET: {sub: stall_id|helper_id, role:'authenticated', app_role, fair_id, stall_id, helper_id, exp: +12h}
--- join-stall     POST {code, stall, owner, phone, pin} → validates invite_code, inserts stall (next free prefix), returns JWT
--- reset-pin      admin only → pin_hash = crypt('0000'), pin_must_change = true
+-- ───────────────────────── Edge Functions ─────────────────────────
+-- Done:
+-- stall-auth     supabase/functions/stall-auth — POST {action:'login'|'join', ...} → pin_check / join_stall above,
+--                then a real Supabase session for the stall/helper (claims in app_metadata). PIN reset = admin_reset_pin().
+-- Still to write (outline):
 -- push-subscribe POST {subject, subscription} → upsert push_subscriptions (service role)
 -- push-notify    DB webhook on orders INSERT (→ 'stall:<id>') and UPDATE status→ready (→ 'customer:<id>'); sends Web Push (VAPID)
 -- nightly-backup cron 21:00 IST → CSV of orders + stall_totals to storage bucket `backups/`, email signed URL to admin

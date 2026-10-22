@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import {
-  DEFAULT_TEMPLATES, PAID, TAGS, digits, fill, friendly, lineLabel, menuLabel, photoUrl, qrSvg, shrinkPhoto, staff, stallAuth,
+  DEFAULT_TEMPLATES, PAID, TAGS, digits, fetchAll, fill, friendly, lineLabel, menuLabel, photoUrl, qrSvg, shrinkPhoto, staff, stallAuth,
   stallUrl, statusInfo, time, upiLink, wa,
   type Combo, type Fair, type Item, type Order, type Stall, type Templates,
 } from './lib';
@@ -133,8 +133,8 @@ function StaffApp({ fair, session }: { fair: Fair; session: Session }) {
 
   const reloadOrders = useCallback(async () => {
     await staff.rpc('release_expired_holds');
-    const { data } = await staff.from('orders').select('*, order_lines(*)').eq('stall_id', stallId).order('created_at');
-    if (!data) return;
+    const data = await fetchAll<Order>((a, b) => staff.from('orders').select('*, order_lines(*)').eq('stall_id', stallId).order('created_at').range(a, b)).catch(() => null);
+    if (!data) return;   // keep the last good list on a failed poll
     // ring + banner for orders that arrived since the last look
     if (seen.current) {
       const fresh = data.filter(o => !seen.current!.has(o.id) && o.customer_id);

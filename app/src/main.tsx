@@ -6,6 +6,7 @@ import './app.css';
 import Customer from './Customer';
 import Board from './Board';
 import Owner from './Owner';
+import Admin from './Admin';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path=":slug/board" element={<Board />} />
         <Route path=":slug/owner/*" element={<Owner />} />
+        <Route path=":slug/admin" element={<Admin />} />
         <Route path=":slug/*" element={<Customer />} />
         <Route path="*" element={<div className="phone" style={{ padding: 'var(--space-8) var(--space-6)' }}><h2 className="display">Stall Day</h2><p>Scan a stall's QR code to start.</p></div>} />
       </Routes>
