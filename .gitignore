@@ -1,0 +1,14 @@
+# Secrets — never commit. Keep keys in these files, not in README or code.
+.env
+.env.*
+!.env.example
+supabase/.env
+supabase/functions/.env
+*.pem
+*.key
+
+# Tooling
+node_modules/
+dist/
+supabase/.temp/
+supabase/.branches/

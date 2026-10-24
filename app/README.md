@@ -30,8 +30,8 @@ Web Push ("New order" for owners, "Order ready" for customers), 9 pm CSV backup,
    Sign in at `/schoolfair/admin`. Change the demo invite code (`FAIR24`) there before sharing the link.
 8. **Push notifications** (optional — without them the in-app banners and WhatsApp links still work):
    ```
-   npx web-push generate-vapid-keys            # gives a public and a private key
-   supabase secrets set VAPID_PUBLIC_KEY=BPP1JO5bRrsBKfW4fYnaQ4HukUWn8OcOmXfwmIm8bwxYClpV-NZGL0XFCdpdBuo2B9Xeb6x-WuNOXYWmWrMiq3U VAPID_PRIVATE_KEY=A1WqlPHNVD_6Dxw0HJPSMMW0t_7tESNSJ84EaaHBbZA VAPID_SUBJECT=mailto:durgaprasad57@gmail.com
+   npx web-push generate-vapid-keys            # put both in supabase/.env (never in this README)
+   supabase secrets set --env-file supabase/.env   # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT — file is git-ignored
    supabase functions deploy push-notify
    ```
    Put the same public key in `VITE_VAPID_PUBLIC_KEY` (`.env.local` and the hosting settings).
